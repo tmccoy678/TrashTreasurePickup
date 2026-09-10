@@ -1,0 +1,11 @@
+# Treasure Pickup
+
+Treasure Pickup is a manual-only skill for reconstructing Trash Pickup's supplied handoff and checkpoint in a fresh context. It performs the checks permitted by the user's access, reports their limits, and returns bounded context plus one Markdown receipt. It never uses a trash bag or begins the next phase. `DONE` records pickup completion within the reported limits; it is not authorization.
+
+With sufficient authorized access, required folders, package selection and claims, verification gates, receipt history, and registry completion proceed automatically without another opt-in. Saving remains required. The helper retains its internal JSON records and saves one Markdown receipt containing the same recorded checks in `treasurepickup/receipts/`. Normal `DONE` still requires all normal verification and completion conditions.
+
+With limited or no access, supply Trash's exact content as pasted text, readable attachments, or permitted files. Reconstruction and the receipt can finish in the conversation without disk output, registry claims, or inspecting inaccessible helpers. Saving is optional in this fallback. Missing bytes, hashes, execution, and live observations remain `UNKNOWN` or `NOT RUN`; actual mismatches and interrupted operations cannot become successful fallback results. Fallback `DONE` means reconstruction and reporting finished, with verification limits explicit.
+
+The user controls custody of retained artifacts; the tools remain responsible for reporting checks accurately. A supplied hash checks consistency with its baseline, not independent authorship. Pasted content alone does not prove original-file byte integrity or unobserved machine state.
+
+Normal storage uses `PICKUP_HOME` (default: `~/Desktop/pickup_audit`). Explicit paths take precedence; a custom compatibility output places Markdown receipts in its sibling `receipts/` folder. Follow [macOS setup](references/macos-setup.md) and the [Pickup Registry protocol](references/pickup-registry.md) when access permits their use. [SKILL.md](SKILL.md) defines both cases. Regression tests remain required for implementation acceptance; limited-access invocations need no inaccessible helpers or test suite.

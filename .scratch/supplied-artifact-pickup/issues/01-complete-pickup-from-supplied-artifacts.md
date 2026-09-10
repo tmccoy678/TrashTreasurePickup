@@ -1,0 +1,26 @@
+# 01 — Preserve normal pickup and support limited access
+
+**What to build:** Keep the draft2 pair's normal automation for users who grant sufficient access: required folders, artifact saves, registry operations, verification, and receipts proceed automatically. When access is insufficient, reconstruct Trash's supplied handoff in the conversation and return a Markdown receipt without requiring unavailable filesystem or helper operations. Reuse the same handoff and core logic.
+
+**Blocked by:** None — can start immediately.
+
+**Status:** complete
+
+**Source:** [Pickup using the access the user allows](../spec.md).
+
+- [x] Use the invocation's existing authorized access to determine which operations can run. With sufficient access, proceed normally without another storage or registry opt-in. Do not add a mode selector or duplicate the pickup implementation.
+- [x] When access covers the configured Pickup location, automatically create required folders and perform the normal handoff, archive, checkpoint, and receipt saves. The existing Desktop audit default may be used normally. Honor user-created folders, existing grants, platform controls, and explicit restrictions; saving is not optional in the normal workflow.
+- [x] With sufficient access, automatically retain Trash's registry publication and package verification and Treasure's selection, claim, verification gates, receipt history, and completion. Preserve existing runtime checks and normal success requirements.
+- [x] With limited or no access, read the exact handoff already supplied by Trash through readable attachments, pasted content, or permitted file access. Complete reconstruction without mandatory disk output, an additional registry package, a claim, or inspecting unavailable helpers. Returning artifacts in the conversation is sufficient; saving is optional in this fallback.
+- [x] Reuse the approved handoff verifier unchanged when available. Preserve its outcomes and failure precedence. In the fallback, unavailable hashes, original bytes, execution, or live-state checks are accurately UNKNOWN or NOT RUN and do not prevent reconstruction of supplied context.
+- [x] Disclose actual mismatches, secret findings, registry corruption, and interrupted operations. Do not recategorize a failing authorized run as limited access to claim success. If access is lost, report incomplete state honestly and do not invent successful saves or claim closure.
+- [x] Return one user-facing Markdown receipt in both cases. Normal operation saves it and retains the existing internal JSON records; the Markdown can include relevant JSON receipt details. The fallback can return it in the conversation. Distinguish current checks from stored evidence and never fabricate claims, revisions, paths, or consume status.
+- [x] Normal DONE retains normal successful-completion conditions. Fallback DONE means supplied context was reconstructed and reporting completed, with unavailable verification explicit. No result authorizes the next phase or proves unobserved live state.
+- [x] Preserve normal secret scanning. Use only permitted locations and relevant artifact or receipt material for temporary processing, and clean up owned temporary files after success or failure. Restricted access does not require opening unavailable helpers or running scans; report those limits accurately.
+- [x] Preserve manual invocation, safe-boundary reporting, credential exclusions, artifact custody responsibilities, and the existing trash-bag behavior. Treasure continues to exclude trash bags. Keep both skills' instructions, readmes, setup guidance, and protocol explanations consistent with the access condition.
+- [x] Exercise the normal end-to-end lifecycle in an isolated installation with sufficient access and the real scanner. Demonstrate automatic folder creation, required saves, registry operations, applicable checks, and receipt delivery without an additional opt-in.
+- [x] Exercise supplied-content reconstruction with no permitted writes or command execution, plus partial access that allows reads but not persistence. Confirm no unauthorized writes or inspection of unavailable helpers, successful context delivery with accurate limitations, and one Markdown receipt. Distinguish direct execution evidence from instruction review.
+- [x] Run the relevant existing regression checks for the registry helpers and normal workflow as required implementation acceptance gates. Reuse verifier tests for matches, mismatches, missing evidence, and failure precedence; verify temporary cleanup, access-loss reporting, and receipt accuracy. Limited-access end-user invocations do not need to inspect or run inaccessible helper tests.
+- [x] Keep changes confined to draft2 and avoid a registry rewrite or replacement. Preserve the first staged pair, other systems, licenses, and unrelated files; leave live user audit data untouched during implementation and testing. Verify the changed-file scope. Do not commit, publish, modify the parent specification, or start later work as part of this ticket.
+
+Completion evidence: [Implementation acceptance](../acceptance.md). All 241 regression tests passed; the restricted-access cases were reviewed as instruction walkthroughs, not autonomous restricted-model executions. Standards and Spec reviews each found zero issues.

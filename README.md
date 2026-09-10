@@ -1,5 +1,13 @@
 # Treasure Pickup
 
+Download [pickup-install.command](https://github.com/tmccoy678/draft2staged-treasurepickup/blob/main/dist/pickup-install.command) through your authorized GitHub access, then run:
+
+```bash
+bash "$HOME/Downloads/pickup-install.command"
+```
+
+Accept the setup defaults or choose your locations. This installs **both skills and their required tools**. Internet access is needed; no manual folder copying or separate Python, Git, Gitleaks, or jq setup is required. See [macOS setup](references/macos-setup.md) for details.
+
 Treasure Pickup is a manual-only skill for reconstructing Trash Pickup's supplied handoff and checkpoint in a fresh context. It performs the checks permitted by the user's access, reports their limits, and returns bounded context plus one Markdown receipt. It never uses a trash bag or begins the next phase. `DONE` records pickup completion within the reported limits; it is not authorization.
 
 With sufficient authorized access, required folders, package selection and claims, verification gates, receipt history, and registry completion proceed automatically without another opt-in. Saving remains required. The helper retains its internal JSON records and saves one Markdown receipt containing the same recorded checks in `treasurepickup/receipts/`. Normal `DONE` still requires all normal verification and completion conditions.

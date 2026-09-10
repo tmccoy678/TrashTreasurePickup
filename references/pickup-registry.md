@@ -36,7 +36,7 @@ Package files, quarantine events, and versioned receipt files are immutable. Do 
 List packages without claiming them:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 \
+PYTHONDONTWRITEBYTECODE=1 "$pickup_python" \
   "$pickup_registry" inspect \
   --registry-root "$pickup_registry_root"
 ```
@@ -54,7 +54,7 @@ Trash Pickup publishes only after its handoff/checkpoint pair passes its own clo
 Choose a stable `track_id` of 1-63 lowercase kebab-case characters. Empty segments and consecutive hyphens are invalid; the bound leaves room for protocol suffixes within a filesystem path component.
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 \
+PYTHONDONTWRITEBYTECODE=1 "$pickup_python" \
   "$pickup_registry" publish \
   --registry-root "$pickup_registry_root" \
   --track-id <stable-kebab-case-track-id> \
@@ -72,7 +72,7 @@ Publishing captures each source once, then parses, hashes, scans, and copies tho
 Start a new opening run before reading package contents:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 \
+PYTHONDONTWRITEBYTECODE=1 "$pickup_python" \
   "$pickup_registry" claim \
   --registry-root "$pickup_registry_root" \
   [--selector <track-id>@<checkpoint-id>] \
@@ -102,7 +102,7 @@ Every mutation must use the latest returned revision and receipt hash. A stale o
 After independently completing one gate, append its receipt revision:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 \
+PYTHONDONTWRITEBYTECODE=1 "$pickup_python" \
   "$pickup_registry" advance \
   --registry-root "$pickup_registry_root" \
   --track-id <exact-track-id> \
@@ -143,7 +143,7 @@ Advance the gates in exactly that order. Missing, malformed, mismatched, non-pas
 Finalize the exact run with the same status/drift contract as the prior receipt helper:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 \
+PYTHONDONTWRITEBYTECODE=1 "$pickup_python" \
   "$pickup_registry" complete \
   --registry-root "$pickup_registry_root" \
   --track-id <exact-track-id> \
@@ -169,7 +169,7 @@ Each `COMPLETED` event also saves one user-facing Markdown receipt containing th
 Only after the current user explicitly chooses to make an `ABORTED` package available again, use the exact terminal receipt coordinates:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 \
+PYTHONDONTWRITEBYTECODE=1 "$pickup_python" \
   "$pickup_registry" release \
   --registry-root "$pickup_registry_root" \
   --track-id <exact-track-id> \

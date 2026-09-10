@@ -11,8 +11,7 @@ machine=$(uname -m)
 case "$machine" in arm64|x86_64) ;; *) echo 'Unsupported Mac architecture.' >&2; exit 1;; esac
 mkdir -p "$HOME/Library/Application Support/Pickup"
 runtime=$(mktemp -d "$HOME/Library/Application Support/Pickup/runtime.XXXXXXXX")
-finished=false
-cleanup() { if [[ $finished == false ]]; then rm -rf "$runtime"; fi; }
+cleanup() { if [[ ! -e "$runtime/installed" ]]; then rm -rf "$runtime"; fi; }
 trap cleanup EXIT
 trap 'exit 1' HUP INT TERM
 mkdir "$runtime/tools"
@@ -37,4 +36,3 @@ echo 'Installing the tools used by Pickup…'
 export PIXI_CACHE_DIR="$runtime/cache"
 "$runtime/tools/pixi" install --no-config --locked --manifest-path "$runtime/pixi.toml"
 "$runtime/.pixi/envs/default/bin/python3" "$bundle/installer/setup.py" "$bundle" "$runtime" "$@"
-finished=true

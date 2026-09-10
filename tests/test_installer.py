@@ -146,6 +146,16 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.pickup("registry", "--help")
 
+    def test_closed_output_does_not_delete_tools_after_installation(self):
+        process = subprocess.Popen(["/bin/bash", str(REPO / "installer" / "install.sh"), str(self.bundle), "--yes"],
+                                   env=self.env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.assertIn(b"Installing", process.stdout.readline())
+        process.stdout.close()
+        process.stderr.read()
+        process.stderr.close()
+        process.wait(timeout=30)
+        self.pickup("registry", "--help")
+
 
 if __name__ == "__main__":
     unittest.main()

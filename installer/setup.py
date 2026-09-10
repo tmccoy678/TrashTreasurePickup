@@ -66,6 +66,8 @@ def main():
                 backup = Path(tempfile.mkdtemp(prefix=".pickup-backup-", dir=skills))
                 for name in existing:
                     (skills / name).rename(backup / name)
+            # Keep tools once a skill can reference them, even if reporting fails.
+            (args.runtime / "installed").touch()
             for name in names:
                 if os.path.lexists(skills / name):
                     raise FileExistsError(f"Installation destination changed: {skills / name}")
@@ -78,6 +80,7 @@ def main():
                 for path in backup.iterdir():
                     path.rename(skills / path.name)
                 backup.rmdir()
+            (args.runtime / "installed").unlink(missing_ok=True)
             raise
     print(f"Pickup installed: {skills}\nAudit location: {audit}")
     if backup:

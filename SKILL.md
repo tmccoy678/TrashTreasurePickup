@@ -44,9 +44,9 @@ For `WAIT`, explain the exact unfinished work and print `TRASHPICKUP: WAIT`. A c
 
 ## 2. Resolve the canonical workspace
 
-Use the explicitly selected Pickup location when supplied. Otherwise use `PICKUP_HOME`, defaulting to `~/Desktop/pickup_audit`. Expand a leading `~` in configured paths. An explicit command-line path takes precedence over its configured default.
+Use the explicitly selected Pickup location when supplied. Otherwise use `PICKUP_HOME`, then the audit location saved by [macOS setup](references/macos-setup.md), defaulting to `~/Desktop/pickup_audit`. Expand a leading `~` in configured paths. An explicit command-line path takes precedence over its configured default.
 
-This section's filesystem setup applies when access permits it. Follow [macOS setup](references/macos-setup.md) to locate the installed Treasure Pickup registry helper and automatically create the required folders. Existing grants and user-created folders need no new opt-in. In the commands below, `pickup_workspace` is the resolved Pickup location. Quote filesystem paths. Find `python3` and `gitleaks` through `PATH`; an explicit helper `--gitleaks-path` overrides scanner discovery.
+This section's filesystem setup applies when access permits it. Follow [macOS setup](references/macos-setup.md) to locate the installed Treasure Pickup registry helper and automatically create the required folders. Existing grants and user-created folders need no new opt-in. In the commands below, `pickup_workspace` is the resolved Pickup location. Quote filesystem paths. Load the installed tool configuration described there. Use `"$pickup_python"` for Python, `"$pickup_git"` for repository checks, and `"$pickup_gitleaks"` for scanning; an explicit helper `--gitleaks-path` overrides scanner discovery.
 
 Preserve the current project's source paths and established handoff conventions. The Pickup location stores the pair's artifacts; it does not change the project being reviewed. In the fallback, name the supplied documents without inventing saved paths.
 
@@ -258,7 +258,7 @@ Before invoking the registry, verify every applicable criterion:
 
 - the Markdown current handoff exists;
 - the new archived handoff exists and is byte-identical to the current handoff;
-- the checkpoint parses with `jq`;
+- the checkpoint parses with `"$pickup_python" -m json.tool <checkpoint-path>`;
 - the checkpoint has a valid timestamp, says `READY`, and identifies the same canonical handoff;
 - the Markdown and JSON records agree on the current and next phases;
 - the current and archived handoffs state the same single next phase;

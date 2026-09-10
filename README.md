@@ -1,5 +1,13 @@
 # Trash Pickup
 
+Download [pickup-install.command](https://github.com/tmccoy678/draft2staged-treasurepickup/blob/main/dist/pickup-install.command) through your authorized GitHub access, then run:
+
+```bash
+bash "$HOME/Downloads/pickup-install.command"
+```
+
+Accept the setup defaults or choose your locations. This installs **both skills and their required tools**. Internet access is needed; no manual folder copying or separate Python, Git, Gitleaks, or jq setup is required. See [macOS setup](references/macos-setup.md) for details.
+
 Trash Pickup is a manual-only skill for closing a work phase at a safe boundary. It reconstructs the available evidence into a Markdown handoff and checkpoint JSON, or returns `WAIT` when the phase cannot close safely. Supply that handoff and checkpoint with an explicit Treasure Pickup invocation in the next fresh context. A completed close supports transfer; readiness never authorizes later work.
 
 With sufficient authorized access, required folders, handoff and archive saves, checkpoint storage, registry publication, and package verification happen automatically. Existing permissions need no additional storage or registry opt-in. Saving remains required in this normal workflow.

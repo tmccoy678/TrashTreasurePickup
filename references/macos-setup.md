@@ -1,47 +1,49 @@
 # macOS setup for the Pickup pair
 
-Use this setup for the normal file and registry workflow when the invocation has sufficient authorized access. Existing grants activate that workflow automatically; no additional storage or registry opt-in is needed. With limited or no access, follow the supplied-content instructions in the invoked `SKILL.md` without requiring installation, commands, or inaccessible helper reads. The handoff and receipt may be delivered in the conversation; saving is optional only in that fallback.
+## Install both skills
 
-Manually copy the complete `trashpickup/` and `treasurepickup/` directories into `~/.agents/skills/`. Keep `SKILL.md`, `agents/`, `references/`, and Treasure Pickup's `scripts/` intact. Both skills remain manually invoked.
-
-Trash Pickup uses Treasure Pickup's shared registry helper for inspection and package publication. That helper also contains the handoff identity and integrity verifier. Each skill includes the same [Pickup Registry protocol](pickup-registry.md). The older receipt helper remains available for existing receipt commands; new runs use the registry.
-
-## Prerequisites for the normal file workflow
-
-- macOS with Python 3.9 or newer available as `python3`. The helpers use the standard library; there are no pip dependencies.
-- Gitleaks through `PATH`, supporting `detect --no-git --source` and the helper's redaction/output flags. An explicit `--gitleaks-path` may select its executable. A missing scanner blocks registry writes.
-- Git when reviewing repository state. Trash Pickup also uses `jq` to check checkpoint JSON.
-
-## Select the Pickup location
-
-Use an explicitly selected location first; otherwise use `PICKUP_HOME`, defaulting to `~/Desktop/pickup_audit`. This location stores the pair's artifacts. Preserve the current project's source paths in the handoff. Expand a leading `~`, use resolved absolute paths, and quote them.
-
-The following shell setup uses the sibling installation above. If Treasure Pickup lives elsewhere, set `treasurepickup_skill` to that exact installed directory.
+Download `pickup-install.command` from the draft2 Treasure repository's `dist` folder using your authorized GitHub access, or use the copy supplied by the maintainer. Run:
 
 ```bash
-export PICKUP_HOME="${PICKUP_HOME:-$HOME/Desktop/pickup_audit}"
-pickup_workspace="$PICKUP_HOME"
+bash "$HOME/Downloads/pickup-install.command"
+```
+
+Accept the displayed locations, or choose your own. The installer supplies both skills, Python, Git, and Gitleaks. Internet access is needed for its tool downloads. No separate prerequisite installation or folder copying is needed. Existing skills require a replacement decision and are backed up when replacement is accepted. Existing audit data is preserved.
+
+The default skill destination is `~/.agents/skills`; the default audit location is `~/Desktop/pickup_audit`. An existing user-created audit folder works identically. Setup does not invoke the skills, create pickup history, or grant the assistant file access.
+
+The repositories remain private. The downloaded command file is the current installation route; a public download command depends on the owner's later publication. The installer targets Apple Silicon and Intel with a macOS 12 minimum. Actual verification is recorded in Treasure's installer acceptance document; other configurations remain unverified until tested.
+
+## Resolve commands when access permits
+
+These steps are for the operator following the invoked skill, not extra setup for the user. Use the installed Treasure Pickup directory supplied by the host or installer. Both skills use its shared helper.
+
+```bash
+# Use the selected installation directory if it differs from the default.
 treasurepickup_skill="$HOME/.agents/skills/treasurepickup"
+treasurepickup_skill=$(cd "$treasurepickup_skill" && pwd -P)
+source "$treasurepickup_skill/scripts/pickup-env.sh"
+pickup_workspace=$("$pickup_python" -c 'import os; from pathlib import Path; print(Path(os.environ["PICKUP_HOME"]).expanduser().resolve())')
 pickup_registry="$treasurepickup_skill/scripts/pickup_registry.py"
 pickup_registry_root="$pickup_workspace/treasurepickup/pickups"
 ```
 
-When existing access covers storage at this location, automatically create these directories as part of the normal invocation, then perform the required artifact saves and registry operations:
+The generated configuration supplies the tool paths and saved audit location to this command or shell only. It does not change shell startup files. An explicit Pickup location takes precedence over `PICKUP_HOME`, which takes precedence over the saved location. Helper command-line paths retain their existing precedence. Quote all paths. Use `"$pickup_python"` for Python and checkpoint JSON validation, `"$pickup_git"` for repository checks, and `"$pickup_gitleaks"` for scanning. Scanner discovery through the configured command PATH still works, and `--gitleaks-path` overrides it.
+
+For direct helper use, the installed `scripts/pickup` command also accepts `registry`, `receipt`, `python`, `git`, `gitleaks`, or `config`. It loads the same configuration and forwards arguments. Use the original helper gates and verified values, as described in the [registry protocol](pickup-registry.md).
+
+## Storage and access
+
+With sufficient authorized access, automatically create the required folders during the normal skill invocation, then save and verify the handoff, archive, checkpoint, registry package, and receipt as usual:
 
 ```bash
 mkdir -p "$pickup_workspace/trashpickup/context-archive" "$pickup_workspace/treasurepickup"
 ```
 
-A directory created by the user works the same way once access is permitted. Respect platform controls and explicit restrictions. Denied access permits conversation delivery without requesting broader access. An actual failed check or interrupted normal transaction must still be reported as such.
+Existing grants activate this workflow without an additional opt-in. Limited or no access retains conversation delivery using supplied evidence and permitted reads; unavailable installation files or helpers are not required for that workflow. Saving is optional only in that fallback. Denied access does not require a broader-access request. An actual failed check or interrupted normal transaction remains a failure, not a successful fallback result.
 
-The protocol passes `--registry-root` explicitly so every operation addresses the same registry. `claim --workspace` must match the registry's workspace binding: two parent directories above the registry. The default compatibility output is `treasurepickup/context-resume.json` beneath that location. Terminal completion automatically creates its sibling `receipts/` folder and saves one Markdown receipt there while retaining internal JSON records. Explicit `--compatibility-output` retains the helper's binding checks and determines that receipt folder. `--skill-file` must identify the deployed `SKILL.md` beside the running helper's `scripts/` directory.
+Registry `claim --workspace` must match the registry's existing workspace binding: two parent directories above the registry. The default compatibility output is `treasurepickup/context-resume.json` beneath that location. Completion saves a Markdown receipt in its sibling `receipts` folder while retaining internal JSON records. Explicit output paths retain the helper's binding checks. `--skill-file` identifies the deployed Treasure `SKILL.md` beside the running helper; use its resolved absolute path.
 
-## Confirm the supporting files
+Preserve the current project's source paths in the handoff. Temporary processing is limited to relevant artifacts and receipts, using permitted temporary storage and cleaning up owned temporary files. A missing or failing scanner in an otherwise authorized normal run blocks required writes.
 
-Confirm the installed Treasure Pickup `SKILL.md`, `scripts/pickup_registry.py`, this package's `references/pickup-registry.md`, and the commands required for the invocation.
-
-The checkpoint shape is embedded in Trash Pickup's `SKILL.md`; gate evidence is defined in the [registry protocol](pickup-registry.md). Package, receipt, and quarantine validation remain inside Treasure Pickup's scripts. No separately downloaded schema or template is needed. Replace placeholders with verified facts.
-
-Setup supplies locations and supporting files. Each manually invoked skill still checks its inputs and reports its results. Completion never authorizes the next phase.
-
-Use permitted temporary storage only for the relevant artifact or receipt material; the helpers use the system temporary directory (or a permitted `TMPDIR`). Clean up owned temporary files on success or failure. If that processing is unavailable because of access restrictions, report the unavailable checks and follow the skill's fallback. A missing or failing scanner in an otherwise authorized normal run remains a failure, not a passed or skipped normal check.
+The checkpoint shape remains in Trash's skill; registry validation remains in the existing helpers. Completing installation or a pickup never authorizes the next work phase.

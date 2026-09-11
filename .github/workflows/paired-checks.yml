@@ -1,0 +1,56 @@
+name: Paired checks
+on:
+  pull_request:
+  push:
+    branches: [main, codex/publication-1-5]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: macos-14
+    steps:
+      - name: Check out Treasure
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: draft2staged-treasurepickup
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Read compatible Trash identity
+        id: pair
+        working-directory: draft2staged-treasurepickup
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          commit = json.loads(Path(".github/paired-source.json").read_text())["trash_commit"]
+          if not re.fullmatch("[0-9a-f]{40}", commit):
+              raise SystemExit("Expected a full companion commit")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              print("commit=" + commit, file=output)
+          PY
+      - name: Check out pinned Trash
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: tmccoy678/draft2staged-trashpickup
+          ref: ${{ steps.pair.outputs.commit }}
+          path: draft2staged-trashpickup
+          fetch-depth: 0
+          ssh-key: ${{ secrets.PICKUP_COMPANION_SSH_KEY }}
+          persist-credentials: false
+      - name: Set up test Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Documentation and syntax
+        working-directory: draft2staged-treasurepickup
+        run: python3 scripts/check_publication.py --trash ../draft2staged-trashpickup
+      - name: Regression suite with fixture downloads and scanner
+        working-directory: draft2staged-treasurepickup
+        run: python3 -m unittest discover -s tests -v
+      - name: Verify distributed installer against declared sources
+        working-directory: draft2staged-treasurepickup
+        run: |
+          python3 installer/bundle.py --trash ../draft2staged-trashpickup --output dist/pickup-install.command --verify
+          shasum -a 256 dist/pickup-install.command
+

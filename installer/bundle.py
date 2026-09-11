@@ -7,6 +7,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import re
 import subprocess
 import tarfile
 
@@ -79,6 +80,8 @@ def check_sources(manifest, files, roots, pins):
     """Match every shipped byte to its declared Git commit, including installer inputs."""
     for name, root in roots.items():
         recorded = manifest["sources"][name]["commit"]
+        if recorded is not None and (not isinstance(recorded, str) or not re.fullmatch("[0-9a-f]{40}", recorded)):
+            raise ValueError(f"Expected an immutable source commit: {name}")
         pin = pins[name]
         if pin is not None and recorded != pin:
             raise ValueError(f"Source identity differs from declared commit: {name}")
@@ -86,6 +89,9 @@ def check_sources(manifest, files, roots, pins):
             if pin is not None or revision(root)["commit"] is not None:
                 raise ValueError(f"Missing declared commit: {name}")
             continue  # Unversioned fixture builds are not release evidence.
+        resolved = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", f"{recorded}^{{commit}}"], capture_output=True, text=True)
+        if resolved.returncode or resolved.stdout.strip() != recorded:
+            raise ValueError(f"Declared source identity is not a commit: {name}")
         for path, data in files.items():
             if path.startswith(name + "/"):
                 relative = path.split("/", 1)[1]

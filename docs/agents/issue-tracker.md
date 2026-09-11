@@ -7,4 +7,3 @@ Read an issue and its comments before implementation. Use a UTF-8 body file with
 Triage-ready work uses `ready-for-agent`. Default role labels are `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`; create labels only when used. **PRs as a request surface: no.**
 
 Publishing preparation, changing repository visibility, and publishing a release are separate actions. Follow the current user's approved scope.
-

@@ -30,4 +30,3 @@ Keep human persuasion in the README and operational instructions in the skills/r
 For behavior changes, add a failing test at an agreed public boundary, make it pass, and review the diff against both these standards and the issue's acceptance criteria. Prose needs relevant walkthroughs and link/consistency checks, not sentence snapshot tests. Preserve user data in disposable lifecycle tests.
 
 Use small commits that reference the originating issue and include validation in the PR. Keep cross-repository issues open until both sides are integrated; do not auto-close a shared issue after only one PR merges. Report unrun checks and pending launch decisions explicitly. For security reports, use the [security policy](SECURITY.md).
-

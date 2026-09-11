@@ -53,4 +53,3 @@ jobs:
         run: |
           python3 installer/bundle.py --trash ../draft2staged-trashpickup --output dist/pickup-install.command --verify
           shasum -a 256 dist/pickup-install.command
-

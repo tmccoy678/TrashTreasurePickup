@@ -16,4 +16,3 @@ Taylor
 ---
 
 This is the author's personal account, preserved in the author’s words. The standalone pair's tested scope is described in [macOS setup](macos-setup.md). DobeWorks/DEGS reintegration has not been verified for this standalone distribution; the note describes intent and an offer to discuss the original repositories.
-

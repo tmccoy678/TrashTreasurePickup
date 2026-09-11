@@ -55,6 +55,9 @@ class Host:
         inputs = [{"type": "text", "text": text, "text_elements": []}]
         if skill:
             inputs.append({"type": "skill", "name": skill.parent.name, "path": str(skill)})
+            # Some host builds discover the skill but do not inject its text here.
+            # Supply the exact candidate as a selected skill, as in a pasted skill invocation.
+            inputs.append({"type": "text", "text": "<skill>\n<name>" + skill.parent.name + "</name>\n" + skill.read_text() + "\n</skill>", "text_elements": []})
         self.request("turn/start", {"threadId": thread, "input": inputs})
         replies, tools = [], []
         deadline = time.monotonic() + 180

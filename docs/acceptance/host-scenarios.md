@@ -1,6 +1,6 @@
 # Host instruction acceptance
 
-Use the candidate skills in disposable storage with an already authenticated Codex CLI. The opt-in runner creates temporary repository-scoped copies, verifies host discovery, and sends explicit skill inputs through the app-server protocol. It leaves installed user skills and live Pickup records unchanged.
+Use the candidate skills in disposable storage with an already authenticated Codex CLI. The opt-in runner creates temporary repository-scoped copies, verifies host discovery, and sends explicit skill inputs plus the exact candidate skill text through the app-server protocol. This tests supplied-instruction execution, not automatic skill-text injection by the GUI. It leaves installed user skills and live Pickup records unchanged.
 
 Run from the Treasure source checkout:
 

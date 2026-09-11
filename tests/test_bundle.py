@@ -77,6 +77,38 @@ class BundleTests(unittest.TestCase):
         self.assertNotEqual(self.bundle().returncode, 0)
         self.assertFalse(self.output.exists())
 
+    def test_verify_rejects_mutable_recorded_source_references(self):
+        for root in (self.trash, self.treasure):
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            subprocess.run(["git", "-C", str(root), "add", "."], check=True)
+            subprocess.run(["git", "-C", str(root), "-c", "user.name=Fixture",
+                            "-c", "user.email=fixture@example.invalid", "commit", "-qm", "Fixture"], check=True)
+        self.assertEqual(self.bundle().returncode, 0)
+        script = self.output.read_text()
+        encoded = script.split("<<'PICKUP_PAYLOAD'\n", 1)[1].split("\nPICKUP_PAYLOAD\n", 1)[0]
+        payload = base64.b64decode(encoded)
+        archive_bytes = io.BytesIO()
+        with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as original, tarfile.open(fileobj=archive_bytes, mode="w") as changed:
+            for member in original.getmembers():
+                data = original.extractfile(member).read()
+                if member.name == "source-manifest.json":
+                    manifest = json.loads(data)
+                    for source in manifest["sources"].values():
+                        source["commit"] = "HEAD"
+                    data = json.dumps(manifest, indent=2).encode() + b"\n"
+                    member.size = len(data)
+                changed.addfile(member, io.BytesIO(data))
+        compressed = io.BytesIO()
+        with gzip.GzipFile(fileobj=compressed, mode="wb", mtime=0, filename="") as stream:
+            stream.write(archive_bytes.getvalue())
+        altered = compressed.getvalue()
+        script = script.replace(encoded, base64.encodebytes(altered).decode().rstrip("\n"))
+        script = script.replace(hashlib.sha256(payload).hexdigest(), hashlib.sha256(altered).hexdigest())
+        self.output.write_text(script)
+        result = self.bundle("--verify")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("immutable", result.stderr)
+
     def test_missing_host_metadata_and_support_reference_are_rejected(self):
         for relative in ("agents/openai.yaml", "references/pickup-registry.md"):
             path = self.trash / relative

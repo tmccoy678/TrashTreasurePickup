@@ -8,6 +8,7 @@ import platform
 import re
 import shlex
 import shutil
+import signal
 import subprocess
 import sys
 import tarfile
@@ -197,6 +198,38 @@ class InstallerTests(unittest.TestCase):
                 self.assertEqual(record.read_text(), "User-owned record")
                 self.assertEqual(bag.read_text(), "User-retained omitted content")
                 self.assertEqual((unrelated / "SKILL.md").read_text(), "Keep this skill")
+
+    def test_interrupted_update_preserves_pair_and_records_at_both_locations(self):
+        for custom in (False, True):
+            with self.subTest(custom_locations=custom):
+                self.skills = self.home / ("Custom skills" if custom else ".agents/skills")
+                audit = self.home / ("Custom audit" if custom else "Desktop/pickup_audit")
+                audit.mkdir(parents=True)
+                retained = audit / "sentinel.md"
+                retained.write_text("Keep the user's record")
+                options = ("--skills-dir", str(self.skills), "--audit-dir", str(audit))
+                self.install(*options, "--yes")
+                original = (self.skills / "trashpickup/SKILL.md").read_bytes()
+                unrelated = self.skills / "unrelated"
+                unrelated.mkdir()
+                (unrelated / "SKILL.md").write_text("Unrelated sentinel")
+                process = subprocess.Popen(
+                    ["/bin/bash", str(REPO / "installer/install.sh"), str(self.bundle), *options],
+                    env=self.env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    start_new_session=True)
+                try:
+                    self.assertIn(b"Installing", process.stdout.readline())
+                    os.killpg(process.pid, signal.SIGTERM)
+                    process.communicate(timeout=30)
+                    self.assertNotEqual(process.returncode, 0)
+                finally:
+                    if process.poll() is None:
+                        os.killpg(process.pid, signal.SIGKILL)
+                        process.communicate(timeout=10)
+                self.assertEqual((self.skills / "trashpickup/SKILL.md").read_bytes(), original)
+                self.assertEqual(retained.read_text(), "Keep the user's record")
+                self.assertEqual((unrelated / "SKILL.md").read_text(), "Unrelated sentinel")
+                self.pickup("registry", "--help")
 
 
 if __name__ == "__main__":

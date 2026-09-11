@@ -32,6 +32,6 @@ Run focused bundle/installer tests while editing, then `python3 -m unittest disc
 
 The retained previous installer fixture is hash-checked before its payload is used for upgrade tests. Only external download locations are replaced in the disposable extracted copy; old installer and skill code remain unchanged. This is fixture-scanner evidence. [Historical acceptance](ACCEPTANCE.md) and [publication acceptance](../docs/acceptance/publication-1-5.md) remain records of their original sources and limitations.
 
-CI uses one checkout and no companion-repository secret. Retire the old dedicated companion key only after checking retained workflows during repository cutover. Current real scanner execution remains deferred.
+CI uses one checkout and no companion-repository secret. The dedicated companion credential is retired during the recorded repository cutover. Historical branches retain old workflow text and require modernization before manual reruns. Current real scanner execution remains deferred.
 
 The installer retains its existing user interface: `--yes` accepts defaults and refuses replacement; `--skills-dir` and `--audit-dir` set explicit locations. Interactive replacement retains a backup. [Third-party notices](THIRD_PARTY.md) cover the pinned tools separately from the project's MIT license.

@@ -1,10 +1,17 @@
 # Contributing to the Pickup pair
 
-Start with a small issue describing the user outcome, evidence, and affected skill. Shared changes use [project issues](https://github.com/tmccoy678/draft2staged-treasurepickup/issues) and linked pull requests in this repository. Publication Tickets [01](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/4), [02](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/5), [03](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/6), [04](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/7), and [05](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/8) record the current work.
+Start with a small issue describing the user outcome, evidence, and affected skill. Shared changes use [project issues](https://github.com/tmccoy678/draft2staged-pickup/issues) and linked pull requests in this repository. Publication Tickets [01](https://github.com/tmccoy678/draft2staged-pickup/issues/4), [02](https://github.com/tmccoy678/draft2staged-pickup/issues/5), [03](https://github.com/tmccoy678/draft2staged-pickup/issues/6), [04](https://github.com/tmccoy678/draft2staged-pickup/issues/7), and [05](https://github.com/tmccoy678/draft2staged-pickup/issues/8) record the current work.
 
 ## One checkout
 
-Clone this repository with its history. Both skills live in the skills collection; no companion checkout or submodule is required. Use Python 3.12 and macOS for the full suite. Contributors supply Python and Git; the user installer supplies its managed runtime. There is no separate static typechecker configuration.
+Clone this repository with its history:
+
+```bash
+git clone https://github.com/tmccoy678/draft2staged-pickup.git
+cd draft2staged-pickup
+```
+
+ Both skills live in the skills collection; no companion checkout or submodule is required. Use Python 3.12 and macOS for the full suite. Contributors supply Python and Git; the user installer supplies its managed runtime. There is no separate static typechecker configuration.
 
 From the repository root:
 

@@ -18,6 +18,8 @@ shasum -a 256 dist/pickup-install.command
 
 The builder requires both skills, their readmes/policies/licenses, host metadata, the named support references, shared runtime code, and installer inputs/notices. Other Markdown references and host YAML metadata are included. It rejects missing or symlinked required files. Its source manifest records every payload file's SHA-256 plus both source commits and working-tree modification observations. With explicit commits, every distributed byte must match those commits; unversioned fixture builds are not release evidence.
 
+For a reproducible checksum comparison, use clean paired checkouts with the same source identities and build runtime, and write both comparison outputs outside the checkouts. Working-tree observations are part of the manifest: unrelated uncommitted work can change the installer bytes even when all shipped inputs match the same pins. Repeated verification of an existing candidate uses its recorded manifest and does not rewrite those observations.
+
 `--verify` reads the existing installer as data without running or extracting it to disk. It checks the exact payload file set, file bytes, manifest hashes, declared Git source bytes, and generated shell wrapper. A changed script fails even if its archive is intact. Generated machine configuration, repository history, audit records, and local planning documents are excluded.
 
 Commit the generated bundle after source validation. Its recorded Treasure source may be the preceding commit: that is valid when all distributed files agree. Rebuild whenever a shipped input changes. Keep `.github/paired-source.json` aligned with the reviewed Trash commit so contributor and CI checkouts agree. Updating a bundle is preparation, not a versioned release.

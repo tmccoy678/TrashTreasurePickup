@@ -2,7 +2,7 @@ name: Paired checks
 on:
   pull_request:
   push:
-    branches: [main, codex/publication-1-5]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read

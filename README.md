@@ -50,3 +50,7 @@ The project uses the [MIT License](LICENSE). Bundled tools have their [own notic
 ## Project history and current work
 
 Both source histories are retained. [Consolidation and retained draft work](docs/consolidation.md) explains the import, pending illustrations, and repository transition. Historical acceptance remains tied to its original source revisions.
+
+## Draft illustrations
+
+[Read the illustrated workflow](docs/figures/trashpickup-treasurepickup-overview.pdf) or its [reflowable HTML alternative](docs/figures/trashpickup-treasurepickup-overview.html). These editions and their [source audit](references/verification.md) remain under review in this draft.

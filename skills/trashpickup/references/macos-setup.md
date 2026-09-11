@@ -2,7 +2,7 @@
 
 ## Install both skills
 
-Download `pickup-install.command` from the draft2 Treasure repository's `dist` folder using your authorized GitHub access, or use the copy supplied by the maintainer. Run:
+Download `pickup-install.command` from the Pickup repository's `dist` folder using your authorized GitHub access, or use the copy supplied by the maintainer. Run:
 
 ```bash
 bash "$HOME/Downloads/pickup-install.command"
@@ -12,7 +12,7 @@ Accept the displayed locations, or choose your own. The installer supplies both 
 
 The default skill destination is `~/.agents/skills`; the default audit location is `~/Desktop/pickup_audit`. An existing user-created audit folder works identically. Setup does not invoke the skills, create pickup history, or grant the assistant file access.
 
-The repositories remain private. The downloaded command file is the current installation route; a public download command depends on the owner's later publication. The installer targets Apple Silicon and Intel with a macOS 12 minimum. Actual verification is recorded in Treasure's installer acceptance document; other configurations remain unverified until tested.
+The project remains private. The downloaded command file is the current installation route; a public download command depends on the owner's later publication. The installer targets Apple Silicon and Intel with a macOS 12 minimum. Actual verification is recorded in the project's acceptance documents. Apple Silicon with macOS 26.6.2 was exercised; Intel, older macOS, native GUI discovery, and other hosts remain unverified. Real-scanner execution remains deferred. Model-generated exact text and formatting require human inspection.
 
 ## Resolve commands when access permits
 

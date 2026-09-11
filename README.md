@@ -1,22 +1,24 @@
-# Treasure Pickup
+# Pickup: Trash + Treasure
 
 **See what carried forward. Know what was checked.**
 
-Start your next AI session with the objective, decisions, known issues, and next steps brought together. Treasure Pickup reads the handoff and checkpoint from [Trash Pickup](https://github.com/tmccoy678/draft2staged-trashpickup), performs the checks your access permits, and returns a focused resume context with one readable receipt.
+Carry a finished phase into a fresh AI task with decisions, unresolved issues, and next steps you can inspect. **Trash Pickup closes and records. Treasure Pickup checks and reconstructs.** One repository and one installer keep the pair together.
+
+[Trash Pickup](skills/trashpickup/SKILL.md) produces the handoff and checkpoint. [Treasure Pickup](skills/treasurepickup/SKILL.md) reads that record, performs the checks your access permits, and returns focused resume context with one readable receipt.
 
 The receipt makes performed checks and verification limits explicit. Treasure stops after reporting, leaving you in control of the next phase.
 
 ## Install the pair
 
-The supported installer supplies **both skills and their tools**. Download [pickup-install.command](https://github.com/tmccoy678/draft2staged-treasurepickup/blob/main/dist/pickup-install.command) using your authorized GitHub access, then run:
+The supported installer supplies **both skills and their tools**. Open [pickup-install.command](dist/pickup-install.command), choose **Download raw file** using your authorized GitHub access, then run:
 
 ```bash
 bash "$HOME/Downloads/pickup-install.command"
 ```
 
-Accept the defaults or choose your locations. Internet access is required; separate Python, Git, Gitleaks, or jq setup is unnecessary. This is a development snapshot, not a versioned release. Contributors testing this branch must build its matching source pair using the maintainer instructions; the main-branch download retains its own source identity.
+Accept the defaults or choose your locations. Internet access is required; separate Python, Git, Gitleaks, or jq setup is unnecessary. This is a development snapshot, not a versioned release. Contributors build the matching single-repository snapshot using the [maintainer instructions](installer/README.md). Identify a download by its declared source commit and checksum.
 
-**Tested scope:** the existing installer was exercised on Apple Silicon with macOS 26.6.2. Native Intel, older macOS, and other agent hosts remain unverified; macOS 12 is a configured floor, not a tested-support claim. See [macOS setup](references/macos-setup.md) for paths, replacement backups, and access behavior.
+**Tested scope:** the existing installer was exercised on Apple Silicon with macOS 26.6.2. Native Intel, older macOS, and other agent hosts remain unverified; macOS 12 is a configured floor, not a tested-support claim. Model output can still alter exact text or formatting; inspect generated artifacts before relying on them. Real-scanner execution and native GUI discovery remain unverified in current acceptance. See [macOS setup](references/macos-setup.md) for paths, replacement backups, and access behavior.
 
 ## First use
 
@@ -43,4 +45,8 @@ Read [A note from Taylor](references/author-note.md) about the project's origins
 
 [Setup and access](references/macos-setup.md) · [Update, recovery, and removal](references/lifecycle.md) · [Support](references/support.md) · [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md)
 
-The project uses the [MIT License](LICENSE). Bundled tools have their [own notices](https://github.com/tmccoy678/draft2staged-treasurepickup/blob/main/installer/THIRD_PARTY.md).
+The project uses the [MIT License](LICENSE). Bundled tools have their [own notices](installer/THIRD_PARTY.md).
+
+## Project history and current work
+
+Both source histories are retained. [Consolidation and retained draft work](docs/consolidation.md) explains the import, pending illustrations, and repository transition. Historical acceptance remains tied to its original source revisions.

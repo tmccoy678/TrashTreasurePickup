@@ -4,15 +4,15 @@ Prepared September 10, 2026. Both source repositories were private when inspecte
 
 ## Proposed route
 
-Use GitHub private vulnerability reporting in each public repository. Alternatively, the owner may select a real private contact and verify that it receives reports. No contact address or response commitment has been invented.
+Use GitHub private vulnerability reporting in the canonical Pickup repository after it becomes public. Alternatively, the owner may select a real private contact and verify that it receives reports. No contact address or response commitment has been invented.
 
 Before describing direct reporting as available:
 
 - [ ] The owner authorizes the intended visibility and chooses the reporting route.
-- [ ] For the GitHub route, enable **Settings → Advanced Security → Private vulnerability reporting** on each public repository.
-- [ ] Confirm the **Report a vulnerability** entrypoint appears on each repository's Security/Advisories page for an appropriate non-admin reader.
+- [ ] For the GitHub route, enable **Settings → Advanced Security → Private vulnerability reporting** on the canonical Pickup repository.
+- [ ] Confirm the **Report a vulnerability** entrypoint appears on the canonical repository’s Security/Advisories page for an appropriate non-admin reader.
 - [ ] Confirm the maintainer receives the intended notifications; use a clearly labeled non-sensitive test only if the owner authorizes sending it.
-- [ ] Replace the pending-route language in both security policies with the verified destination. Keep the fallback until this is complete.
+- [ ] Replace the pending-route language in the root SECURITY.md with the verified destination, then synchronize its skill-package copies. Keep the fallback until this is complete.
 - [ ] Name the supported release line and how users identify/update their paired installation.
 - [ ] Record any owner-selected response expectations accurately.
 

@@ -36,7 +36,7 @@ Pending illustrations remain in [canonical draft PR16](https://github.com/tmccoy
 
 The main workflow, completed consolidation branches, and retained successor draft use the single-checkout workflow. Historical `DW/accessible-figures` and `codex/publication-1-5` branches still contain the old workflow text, but their PRs are closed and they are not active automation. Modernize those branches before any manual rerun; historical workflow files do not justify retaining live credentials. No old workflow run was in progress at removal.
 
-Removed only `PICKUP_COMPANION_SSH_KEY` from the canonical repository and matching read-only Trash deploy key ID `162936604` (title `Pickup paired checks (read-only)`). Post-removal lists are empty; no unrelated credential was removed. [Post-removal CI run 34652121124](https://github.com/tmccoy678/draft2staged-pickup/actions/runs/34652121124) was dispatched on main. Its result and the final canonical-documentation revision are recorded in the implementing PR.
+Removed only `PICKUP_COMPANION_SSH_KEY` from the canonical repository and matching read-only Trash deploy key ID `162936604` (title `Pickup paired checks (read-only)`). Post-removal lists are empty; no unrelated credential was removed. [Post-removal CI run 34652121124](https://github.com/tmccoy678/draft2staged-pickup/actions/runs/34652121124) passed on main after both credentials were removed. The final canonical-documentation checks are recorded in PR18.
 
 ## Recovery
 
@@ -44,9 +44,19 @@ Unarchive Trash through repository settings if maintenance is necessary. Preserv
 
 The retired private key is not recoverable. Reactivating historical paired CI would require a newly provisioned dedicated read-only key and secret after reviewing the intended access. Current one-checkout CI does not require it. Repository rollback does not restore or modify installed skills, audit records, registry state, or receipts; use the normal lifecycle/protocol for those operations.
 
-## Standards and Spec
+## Final distribution
 
-Separate review outcomes and final CI are attached to the implementing PR. The final review must cover canonical link changes, source identity, preserved history/drafts, archive state, and credential retirement. Historical acceptance records remain unchanged.
+The canonical-documentation payload declares source `d4f9fb7e8d506de7a9738bda1d88807593b7c32c`, with artifact commit `2195a3dd4f0a4a99d95bd11032fd2f3af167458e`. Its format is `pickup-single-repository-v1`, with explicit source mappings and SHA-256 values for all 39 distributed files. Two clean builds with matching inputs/runtime are byte-identical. Installer SHA-256: `23bcc907df4336042df1c0e19eb10c27fe7348a45f191db693d013dd4a91f9bd`.
+
+Operational SKILL files, the three shared runtime helpers, the latest owner author note, original MIT text, and third-party notices were byte-compared with the pre-consolidation sources and remain unchanged. Final branch and integration CI are linked from [PR18](https://github.com/tmccoy678/draft2staged-pickup/pull/18); this record does not predict their result.
+
+## Standards
+
+Zero findings. The independent review verified canonical/private repository identity, private archived Trash identity, successful post-removal CI, documentation checks, 39-file verification, and unchanged operational/license/author bytes.
+
+## Spec
+
+Zero findings. Independent live checks verified the rename, API redirects, README-only Trash change and archive, retained draft PR16, active URLs, empty dedicated-credential lists, source manifest/digest, and publication handoff. The final-head CI and merge remain completion evidence recorded on PR18. Historical acceptance records remain unchanged.
 
 ## Handoff to publication Tickets 06–07
 

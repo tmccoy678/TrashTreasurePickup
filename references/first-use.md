@@ -97,4 +97,3 @@ The actual response also includes the bounded context and full Markdown receipt 
 Trash produces a separate trash bag of accessible omitted conversation passages subject to secret exclusions. Producing it is part of the contract; saving it belongs to you. Supply only the handoff and checkpoint to Treasure. Treasure excludes the bag from its reads and package.
 
 See [macOS setup](macos-setup.md) and the invoked skill's [registry protocol](pickup-registry.md) for the exact operation and terminal meanings.
-

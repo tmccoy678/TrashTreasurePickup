@@ -67,4 +67,3 @@ Leave audit/registry records, receipts, trash bags you chose to save, `.pickup-b
 | Claim/receipt interrupted | Report the last confirmed operation and sanitized reason; follow the [protocol](pickup-registry.md). Do not hand-edit state or use conversation fallback to declare success. |
 
 For ordinary support, share the release/commit, operating system and architecture, expected behavior, and sanitized error. Keep secrets, raw handoffs, and private audit contents out of reports. See [support](support.md) and [security policy](../SECURITY.md).
-

@@ -17,4 +17,3 @@ Before describing direct reporting as available:
 - [ ] Record any owner-selected response expectations accurately.
 
 Preparation can be complete while these boxes remain open. A working private route and release policy are still required before declaring public launch ready. Repository visibility, settings changes, external messages, and release publication are separate actions.
-

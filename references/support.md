@@ -7,4 +7,3 @@ Include the source commit or release, installer checksum if relevant, operating 
 For setup, updates, rollback, and removal, use the [lifecycle guide](lifecycle.md). For proposing changes and validation, see [Contributing](../CONTRIBUTING.md). Questions, corrections, and simpler structures are welcome; explain the user outcome and retain evidence for behavioral changes.
 
 Vulnerability details belong in a private channel. Follow the [security policy](../SECURITY.md); a public support issue must contain only a request for private contact if no route has been established.
-

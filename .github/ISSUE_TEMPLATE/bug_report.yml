@@ -32,4 +32,3 @@ body:
       description: Sanitized error and last confirmed operation.
     validations:
       required: true
-

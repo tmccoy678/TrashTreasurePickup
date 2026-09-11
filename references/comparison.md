@@ -32,4 +32,3 @@ Sources pin the designs inspected September 10, 2026. Live product documentation
 
 [trash]: https://github.com/tmccoy678/draft2staged-trashpickup/blob/04585979f8ba5c70c27faf5eda953a1480a1d81d/SKILL.md
 [treasure]: https://github.com/tmccoy678/draft2staged-treasurepickup/blob/f4249639498f78ace2ca6f19e37a28ea3c1cc20d/SKILL.md
-

@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-No versioned releases are published. Fixes target the latest commit on `main`; earlier commits, forks, and modified copies are outside the current support policy. Identify a development installation by its source pair and installer digest, then compare with the maintainer's current source.
+No versioned releases are published. Fixes target the latest commit on `main`; earlier commits, forks, and modified copies are outside the current support policy. Identify a development installation by its source commit and installer digest, then compare with the maintainer's current source.
 
 | Version | Security fixes |
 | --- | --- |
@@ -10,7 +10,7 @@ No versioned releases are published. Fixes target the latest commit on `main`; e
 | Earlier commits, forks, or modified copies | No |
 | Future versioned release line | Not selected yet |
 
-Before a versioned release, the maintainer must name the supported release line and update this table and the paired release instructions. No response-time commitment is currently promised.
+Before a versioned release, the maintainer must name the supported release line and update this table and the coordinated release instructions. No response-time commitment is currently promised.
 
 ## Private vulnerability reports
 

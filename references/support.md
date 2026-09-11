@@ -1,6 +1,6 @@
 # Support and contributions
 
-For installation or behavior questions, open an issue in the [Treasure Pickup tracker](https://github.com/tmccoy678/draft2staged-treasurepickup/issues), which tracks shared pair work. Say which skill is affected. Existing repository access is required while the projects remain private.
+For installation or behavior questions, open an issue in the [Pickup tracker](https://github.com/tmccoy678/draft2staged-treasurepickup/issues), which tracks shared pair work. Say which skill is affected. Existing repository access is required while the project remains private.
 
 Include the source commit or release, installer checksum if relevant, operating system/architecture and agent host, a small non-sensitive reproduction, expected behavior, and the sanitized error/result. A minimal fictional fixture is preferable to a real handoff or audit log.
 

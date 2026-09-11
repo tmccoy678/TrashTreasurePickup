@@ -1,0 +1,6 @@
+interface:
+  display_name: "Trash Pickup"
+  short_description: "Checkpoint state for a fresh context"
+
+policy:
+  allow_implicit_invocation: false

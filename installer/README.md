@@ -1,33 +1,37 @@
 # Maintaining the installer
 
-The user downloads the single command file, runs it, and accepts or changes the locations. The installer supplies the pair and its tools. User instructions live in the repositories' README and macOS setup reference.
+One checkout supplies both skills and their tools. User instructions are in the project README and macOS setup reference.
 
-Use compatible sibling checkouts as described in [Contributing](../CONTRIBUTING.md). After committing every distributed input, build from the Treasure checkout using both full source identities:
+## Build and verify
+
+Use a clean checkout with full history and commit every distributed input first. With Python 3.12 and Git available, run from the repository root:
 
 ```bash
-pickup_trash_commit=$(git -C ../draft2staged-trashpickup rev-parse HEAD)
-pickup_treasure_commit=$(git rev-parse HEAD)
-python3 installer/bundle.py --trash ../draft2staged-trashpickup \
-  --trash-commit "$pickup_trash_commit" --treasure-commit "$pickup_treasure_commit" \
-  --output dist/pickup-install.command
-python3 installer/bundle.py --trash ../draft2staged-trashpickup \
-  --trash-commit "$pickup_trash_commit" --treasure-commit "$pickup_treasure_commit" \
-  --output dist/pickup-install.command --verify
+pickup_source_commit=$(git rev-parse HEAD)
+python3 scripts/sync_skill_docs.py --check
+python3 installer/bundle.py --source-commit "$pickup_source_commit" --output dist/pickup-install.command
+python3 installer/bundle.py --source-commit "$pickup_source_commit" --output dist/pickup-install.command --verify
 shasum -a 256 dist/pickup-install.command
 ```
 
-The builder requires both skills, their readmes/policies/licenses, host metadata, the named support references, shared runtime code, and installer inputs/notices. Other Markdown references and host YAML metadata are included. It rejects missing or symlinked required files. Its source manifest records every payload file's SHA-256 plus both source commits and working-tree modification observations. With explicit commits, every distributed byte must match those commits; unversioned fixture builds are not release evidence.
+The default source is this repository. `--source-root` selects a disposable or alternate checkout. `--source-commit` is a full immutable commit. Every distributed input must match that commit. The generated installer can be committed afterward; its source commit remains valid when the distributed inputs agree.
 
-For a reproducible checksum comparison, use clean paired checkouts with the same source identities and build runtime, and write both comparison outputs outside the checkouts. Working-tree observations are part of the manifest: unrelated uncommitted work can change the installer bytes even when all shipped inputs match the same pins. Repeated verification of an existing candidate uses its recorded manifest and does not rewrite those observations.
+For checksum comparisons, build twice with the same source revision, runtime, and provenance inputs, writing both outputs outside the checkout. Working-tree observations are part of the manifest, so unrelated uncommitted changes can change the artifact checksum. Verification uses the candidate's recorded observations.
 
-`--verify` reads the existing installer as data without running or extracting it to disk. It checks the exact payload file set, file bytes, manifest hashes, declared Git source bytes, and generated shell wrapper. A changed script fails even if its archive is intact. Generated machine configuration, repository history, audit records, and local planning documents are excluded.
+## What validation proves
 
-Commit the generated bundle after source validation. Its recorded Treasure source may be the preceding commit: that is valid when all distributed files agree. Rebuild whenever a shipped input changes. Keep `.github/paired-source.json` aligned with the reviewed Trash commit so contributor and CI checkouts agree. Updating a bundle is preparation, not a versioned release.
+The manifest format `pickup-single-repository-v1` records one source revision, explicit source paths for every distributed file, and SHA-256 hashes. Both portable packages receive shared policies and references from one maintained source. Required skill files, metadata, runtime helpers, policies, references, and third-party notices must be regular files; stale package copies fail clearly. All files in the shared reference collection are included, including non-Markdown assets.
 
-The asset list pins Pixi and Gitleaks URLs and hashes. The manifest and lockfile pin Python, Git, and supporting packages for both Mac architectures. Maintainers resolve and validate updates; installation uses the locked environment and never asks the user for dependency choices. See [third-party notices](THIRD_PARTY.md).
+`--verify` reads the installer as data. It checks the exact file set, distributed bytes, source mapping, manifest hashes, recorded Git source bytes, and generated wrapper. It does not run the installer or extract files to disk. Unversioned fixture builds carry null provenance and are not release evidence.
 
-Use `--yes` for automated installations into a disposable home; it accepts defaults and refuses replacement. `--skills-dir` and `--audit-dir` allow explicit destinations. The interactive guide handles replacement with a retained backup. These are installer options, not new pickup modes.
+The legacy `--trash`, `--treasure`, `--installer`, and paired commit options remain an explicit separate mode for historical fixtures. For historical versioned verification, use the matching paired source revisions and historical builder. Legacy artifacts keep their original manifest and checksum; the consolidated verifier does not reinterpret them as the new format.
 
-Run `python3 -m unittest discover -s tests -v` for the full suite. The bundle tests exercise rejection of missing required inputs, changed source bytes, incorrect source identity, and shell-wrapper changes. Installer tests use fixture downloads and include documented update/rollback/removal with retained user records. [Historical acceptance](ACCEPTANCE.md) distinguishes prior real downloads/runtime checks from fixture tests; [current acceptance](../docs/acceptance/publication-1-5.md) records this implementation.
+## Tests and evidence
 
-Hosted paired checks use a full pinned companion commit and a dedicated read-only deploy key stored as the Treasure Actions secret `PICKUP_COMPANION_SSH_KEY` while Trash is private. The key cannot write Trash and is not persisted by checkout. Fork pull requests do not receive this secret: maintainers must review them before running private-companion checks from a trusted branch. Once both sources are public, the public checkout can run without that secret. No real scanner test is added to CI under the current waiver.
+Run focused bundle/installer tests while editing, then `python3 -m unittest discover -s tests -v`. The suite preserves the registry and receipt command-line regressions and checks the one-checkout build, provenance rejection, update/rollback/removal, and interrupted operations in disposable storage.
+
+The retained previous installer fixture is hash-checked before its payload is used for upgrade tests. Only external download locations are replaced in the disposable extracted copy; old installer and skill code remain unchanged. This is fixture-scanner evidence. [Historical acceptance](ACCEPTANCE.md) and [publication acceptance](../docs/acceptance/publication-1-5.md) remain records of their original sources and limitations.
+
+CI uses one checkout and no companion-repository secret. Retire the old dedicated companion key only after checking retained workflows during repository cutover. Current real scanner execution remains deferred.
+
+The installer retains its existing user interface: `--yes` accepts defaults and refuses replacement; `--skills-dir` and `--audit-dir` set explicit locations. Interactive replacement retains a backup. [Third-party notices](THIRD_PARTY.md) cover the pinned tools separately from the project's MIT license.

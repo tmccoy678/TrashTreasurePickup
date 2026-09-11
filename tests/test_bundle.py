@@ -15,7 +15,7 @@ import unittest
 
 
 REPO = Path(__file__).resolve().parents[1]
-TRASH = REPO.parent / "draft2staged-trashpickup"
+TRASH = REPO / "skills" / "trashpickup"
 
 
 class BundleTests(unittest.TestCase):
@@ -25,9 +25,10 @@ class BundleTests(unittest.TestCase):
         self.root = Path(temporary.name)
         self.trash = self.root / "trash"
         self.treasure = self.root / "treasure"
-        for source, target in ((TRASH, self.trash), (REPO, self.treasure)):
+        for source, target in ((TRASH, self.trash), (REPO / "skills/treasurepickup", self.treasure)):
             shutil.copytree(source, target, ignore=shutil.ignore_patterns(
                 ".git", ".scratch", "dist", "__pycache__", ".pixi"))
+        shutil.copytree(REPO / "installer", self.treasure / "installer")
         self.output = self.root / "pickup-install.command"
 
     def bundle(self, *args):

@@ -11,6 +11,8 @@ import re
 import subprocess
 import tarfile
 
+from sources import collect
+
 
 def render(files, manifest):
     """Render a deterministic command file, including its recorded provenance."""
@@ -106,14 +108,26 @@ def check_sources(manifest, files, roots, pins):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--trash", type=Path, required=True)
-    parser.add_argument("--treasure", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--installer", type=Path, default=Path(__file__).resolve().parent)
+    parser.add_argument("--source-root", type=Path, help="Consolidated repository (default: this checkout)")
+    parser.add_argument("--source-commit", help="Exact consolidated source commit")
+    parser.add_argument("--trash", type=Path, help="Legacy paired-source mode only")
+    parser.add_argument("--treasure", type=Path, help="Legacy Treasure source tree")
+    parser.add_argument("--installer", type=Path, help="Legacy installer source tree")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--verify", action="store_true", help="Verify an existing output without executing it")
     parser.add_argument("--trash-commit", help="Exact 40-character reviewed Trash commit")
     parser.add_argument("--treasure-commit", help="Exact 40-character reviewed Treasure commit")
     args = parser.parse_args()
+    if args.trash is None:
+        if args.trash_commit or args.treasure_commit or args.treasure or args.installer:
+            parser.error("Legacy source options require --trash")
+        root = (args.source_root or Path(__file__).resolve().parents[1]).resolve()
+        build_consolidated(root, args.output, args.source_commit, args.verify)
+        return
+    if args.source_root or args.source_commit:
+        parser.error("Do not combine consolidated and legacy source options")
+    args.treasure = args.treasure or Path(__file__).resolve().parents[1] / "skills/treasurepickup"
+    args.installer = args.installer or Path(__file__).resolve().parent
     pins = {"trashpickup": args.trash_commit, "treasurepickup": args.treasure_commit}
     if any(pins.values()) and not all(pins.values()):
         parser.error("Supply both source commits together")
@@ -157,6 +171,44 @@ def main():
     args.output.write_text(script)
     args.output.chmod(0o755)
     print(f"Built {args.output} ({args.output.stat().st_size} bytes)")
+
+
+def build_consolidated(root, output, pin, verifying):
+    files, mapping = collect(root)
+    manifest = {"format": "pickup-single-repository-v1", "source": revision(root),
+                "source_paths": mapping,
+                "sha256": {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}}
+    if verifying:
+        manifest = verify(output, files)
+    elif pin is not None:
+        manifest["source"]["commit"] = pin
+    if manifest.get("format") != "pickup-single-repository-v1":
+        raise ValueError("Expected pickup-single-repository-v1; use the historical paired checkout for legacy verification")
+    if manifest["source_paths"] != mapping:
+        raise ValueError("Distributed source mapping differs from the repository layout")
+    recorded = manifest["source"]["commit"]
+    if recorded is None:
+        if pin is not None or revision(root)["commit"] is not None:
+            raise ValueError("Missing declared source commit")
+    else:
+        if not isinstance(recorded, str) or not re.fullmatch("[0-9a-f]{40}", recorded):
+            raise ValueError("Expected an immutable source commit")
+        if pin is not None and recorded != pin:
+            raise ValueError("Source identity differs from declared commit")
+        resolved = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", f"{recorded}^{{commit}}"], capture_output=True, text=True)
+        if resolved.returncode or resolved.stdout.strip() != recorded:
+            raise ValueError("Declared source identity is not a commit")
+        for name, relative in mapping.items():
+            source = subprocess.run(["git", "-C", str(root), "show", f"{recorded}:{relative}"], capture_output=True)
+            if source.returncode or source.stdout != files[name]:
+                raise ValueError(f"Distributed file differs from declared commit: {name}")
+    if verifying:
+        print(f"Verified {output}: {len(files)} distributed files match")
+    else:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(render(files, manifest))
+        output.chmod(0o755)
+        print(f"Built {output} ({output.stat().st_size} bytes)")
 
 
 if __name__ == "__main__":

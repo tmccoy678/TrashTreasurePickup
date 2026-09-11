@@ -20,9 +20,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "pickup_registry.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "treasurepickup" / "scripts" / "pickup_registry.py"
 LEGACY_SCRIPT = (
-    Path(__file__).resolve().parents[1] / "scripts" / "treasurepickup_receipt.py"
+    Path(__file__).resolve().parents[1] / "skills" / "treasurepickup" / "scripts" / "treasurepickup_receipt.py"
 )
 SELECTOR_RE = re.compile(r"^alpha@cp-20260902-125509-[0-9a-f]{8}$")
 

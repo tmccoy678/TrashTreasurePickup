@@ -1,25 +1,26 @@
 # Contributing to the Pickup pair
 
-Start with a small issue describing the user outcome, evidence, and affected skill. Shared changes are tracked in [Treasure Pickup issues](https://github.com/tmccoy678/draft2staged-treasurepickup/issues); linked pull requests in both repositories keep the implementation trail together. Publication Tickets [01](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/4), [02](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/5), [03](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/6), [04](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/7), and [05](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/8) record the current work.
+Start with a small issue describing the user outcome, evidence, and affected skill. Shared changes use [project issues](https://github.com/tmccoy678/draft2staged-treasurepickup/issues) and linked pull requests in this repository. Publication Tickets [01](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/4), [02](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/5), [03](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/6), [04](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/7), and [05](https://github.com/tmccoy678/draft2staged-treasurepickup/issues/8) record the current work.
 
-## Compatible checkouts
+## One checkout
 
-Clone the two repositories as siblings named `draft2staged-trashpickup` and `draft2staged-treasurepickup`. Select the exact Treasure revision under review, then check out the full Trash commit recorded in Treasure's `.github/paired-source.json`. Access to both repositories is required while private. Recheck the pair after changing distributed inputs.
+Clone this repository with its history. Both skills live in the skills collection; no companion checkout or submodule is required. Use Python 3.12 and macOS for the full suite. Contributors supply Python and Git; the user installer supplies its managed runtime. There is no separate static typechecker configuration.
 
-Use Python 3.12 and macOS for the full suite. The installer downloads its own user runtime; contributors running tests from source supply their test Python and Git. There is no separate static typechecker configuration.
-
-From the Treasure source checkout:
+From the repository root:
 
 ```bash
-python3 -m unittest discover -s tests -p test_bundle.py -v
+python3 scripts/sync_skill_docs.py --check
+python3 scripts/check_publication.py
+python3 -m unittest discover -s tests -p test_consolidated_bundle.py -v
 python3 -m unittest discover -s tests -p test_installer.py -v
-python3 scripts/check_publication.py --trash ../draft2staged-trashpickup
 python3 -m unittest discover -s tests -v
 ```
 
-Run focused tests while editing, then the full suite once at the end. Reuse equivalent results until a new change invalidates them. Test code behavior through the installer, bundle, and registry/receipt CLIs. External download/scanner fixtures are not real scanner coverage. Host scenarios are maintained separately in the source checkout's `docs/acceptance/host-scenarios.md`; helper tests cannot prove instruction-following.
+Run focused tests while editing, then the full suite at the end. Reuse equivalent results until new changes invalidate them. Tests use the installer, bundle, and registry/receipt command lines. Download/scanner fixtures are not real scanner coverage; host instruction observations are recorded separately.
 
-For builds and strict verification, follow the Treasure source checkout's `installer/README.md`. Its pre-artifact source commit may differ from the commit adding the generated bundle when all distributed bytes match.
+Shared policies and references are maintained at the repository root. Run `python3 scripts/sync_skill_docs.py` after editing them, and commit their regular-file package copies. Those copies let hosts read either skill directly. The builder maps both distributed copies back to the one declared source and rejects stale copies.
+
+After committing every distributed input, use the maintainer build instructions in the repository's installer documentation. Source commits may precede the generated-artifact commit when all shipped bytes match. The maintained host scenario runner and acceptance records live in the repository's acceptance documentation.
 
 ## Review standards
 
@@ -29,4 +30,4 @@ Keep human persuasion in the README and operational instructions in the skills/r
 
 For behavior changes, add a failing test at an agreed public boundary, make it pass, and review the diff against both these standards and the issue's acceptance criteria. Prose needs relevant walkthroughs and link/consistency checks, not sentence snapshot tests. Preserve user data in disposable lifecycle tests.
 
-Use small commits that reference the originating issue and include validation in the PR. Keep cross-repository issues open until both sides are integrated; do not auto-close a shared issue after only one PR merges. Report unrun checks and pending launch decisions explicitly. For security reports, use the [security policy](SECURITY.md).
+Use small commits that reference the originating issue and include validation in the PR. Close an implementation issue only after its complete acceptance criteria and integration evidence are recorded. Report unrun checks and pending launch decisions explicitly. For security reports, use the [security policy](SECURITY.md).

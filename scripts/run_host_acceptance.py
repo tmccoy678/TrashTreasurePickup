@@ -84,12 +84,12 @@ class Host:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--trash", type=Path, required=True)
+    parser.add_argument("--trash", type=Path, default=Path(__file__).resolve().parents[1] / "skills/trashpickup")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--codex", default="codex")
     parser.add_argument("--scenario", help="Run only this named scenario")
     args = parser.parse_args()
-    treasure = Path(__file__).resolve().parents[1]
+    treasure = Path(__file__).resolve().parents[1] / "skills/treasurepickup"
     example = (treasure / "references/first-use.md").read_text()
     handoff = re.search(r"```markdown\n(.*?)```", example, re.S).group(1)
     checkpoint = re.search(r"```json\n(.*?)```", example, re.S).group(1)

@@ -4,7 +4,7 @@ Read the selected handoff/checkpoint, reconstruct the next phase, and return a r
 
 Use `$treasurepickup` explicitly in the first substantive message of a fresh task. Read the receipt, then decide separately whether to begin subsequent work.
 
-Install both skills through the [Pickup project](https://github.com/tmccoy678/draft2staged-treasurepickup). The installed names remain `trashpickup` and `treasurepickup`; both use Treasure’s shared tools.
+Install both skills through the [Pickup project](https://github.com/tmccoy678/draft2staged-pickup). The installed names remain `trashpickup` and `treasurepickup`; both use Treasure’s shared tools.
 
 [First use](references/first-use.md) · [Setup](references/macos-setup.md) · [Update and recovery](references/lifecycle.md) · [Support](references/support.md)
 

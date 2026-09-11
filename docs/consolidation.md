@@ -17,7 +17,7 @@ The accessible illustration and engineering-reference work remains a **draft**, 
 
 Their eleven added files are identical across the two drafts: `.gitattributes`, the figure README, provenance JSON, HTML and PDF overview, HTML and PDF foundation references, citation notes, Crossref metadata, verification report, and verified-entry JSON. The four-line README addition from each draft links the figure and its accessible HTML alternative; those destinations remain part of the retained draft. Latest author-note and comparison edits are separate owner changes and are not overwritten with the older Trash copy.
 
-A successor draft carries these files into the consolidated layout with original bytes and provenance intact. Its PR links both original discussions. Review must still decide whether to accept the illustrations, validate the accessible editions and citations, and refresh the installer for any accepted shared-reference assets. Preserving the draft does not certify PDF/UA accessibility or accept its source claims.
+[Successor draft PR 16](https://github.com/tmccoy678/draft2staged-treasurepickup/pull/16) carries these files into the consolidated layout with original bytes and provenance intact. Its PR links both original discussions. Review must still decide whether to accept the illustrations, validate the accessible editions and citations, and refresh the installer for any accepted shared-reference assets. Preserving the draft does not certify PDF/UA accessibility or accept its source claims.
 
 ## Canonical-name cutover
 

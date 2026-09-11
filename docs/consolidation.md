@@ -1,6 +1,6 @@
 # Pickup consolidation and retained work
 
-The project is becoming one home for `trashpickup` and `treasurepickup`. The installed skill names, shared helper commands, default/custom destinations, and audit records retain their existing meaning. One checkout supplies one installer. See [source/build documentation](../installer/README.md) and [one-checkout acceptance](acceptance/consolidation-01.md).
+The project is one home for `trashpickup` and `treasurepickup`. The installed skill names, shared helper commands, default/custom destinations, and audit records retain their existing meaning. One checkout supplies one installer. See [source/build documentation](../installer/README.md) and [one-checkout acceptance](acceptance/consolidation-01.md).
 
 ## Source history
 
@@ -17,12 +17,12 @@ The accessible illustration and engineering-reference work remains a **draft**, 
 
 Their eleven added files are identical across the two drafts: `.gitattributes`, the figure README, provenance JSON, HTML and PDF overview, HTML and PDF foundation references, citation notes, Crossref metadata, verification report, and verified-entry JSON. The four-line README addition from each draft links the figure and its accessible HTML alternative; those destinations remain part of the retained draft. Latest author-note and comparison edits are separate owner changes and are not overwritten with the older Trash copy.
 
-A successor draft carries these files into the consolidated layout with original bytes and provenance intact. Its PR links both original discussions. Review must still decide whether to accept the illustrations, validate the accessible editions and citations, and refresh the installer for any accepted shared-reference assets. Preserving the draft does not certify PDF/UA accessibility or accept its source claims.
+[Successor draft PR 16](https://github.com/tmccoy678/draft2staged-pickup/pull/16) carries these files into the consolidated layout with original bytes and provenance intact. Its PR links both original discussions. Review must still decide whether to accept the illustrations, validate the accessible editions and citations, and refresh the installer for any accepted shared-reference assets. Preserving the draft does not certify PDF/UA accessibility or accept its source claims.
 
 ## Canonical-name cutover
 
-The approved target name is `draft2staged-pickup`. Until cutover succeeds, working URLs use the current Treasure name and relative project links. Consolidation issue 14 records the rename, source/asset verification, Trash archive, and companion-credential retirement.
+The canonical project is [draft2staged-pickup](https://github.com/tmccoy678/draft2staged-pickup). It retains Treasure's repository identity and GitHub issues/PRs. [Cutover evidence and recovery](acceptance/consolidation-03.md) records exact identities, redirect checks, the old Trash entrypoint, and credential retirement.
 
-External links to update at cutover include skill README project links, support and contribution issue URLs, the agent issue tracker, active build/host instructions, and any explicit clone/download commands. Immutable historical evidence links can retain their original names. Inspect workflow/action references separately: they do not inherit the ordinary repository redirects. The root installer link is relative, so it follows the surviving repository's identity.
+The root installer link is relative. Active support, contribution, skill-home, and tracker links use the canonical name. Historical evidence links retain their original identities. GitHub does not redirect references to repository-hosted actions; this project uses pinned official actions and exposes no repository-hosted action or reusable workflow. Keep the old Treasure name unused to preserve ordinary redirects.
 
 Publication Tickets 06–07 must use the final single-repository revision and manifest. Public visibility, a versioned release, and private-reporting activation remain separate work.

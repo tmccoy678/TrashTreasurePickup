@@ -88,7 +88,7 @@ Respect the user's storage permissions. Leave protected storage and backups unch
 
 ## 5. Capture current state
 
-Produce a concise Markdown handoff with this exact top-level structure:
+Produce a concise Markdown handoff with this exact top-level structure. Put every heading on its own line, with a blank line before and after it; a heading joined to a list item is not a heading.
 
 ```markdown
 # Current Context Handoff
@@ -194,7 +194,7 @@ Keep bag contents and references out of the handoff, checkpoint, and Pickup pack
 
 ## 6. Deliver the artifacts
 
-With limited access, deliver the section 5 handoff as archivable Markdown and the section 7 checkpoint JSON in the conversation. No disk copy, archive verification, or additional registry package is required. State any optional saves actually performed. The user controls custody of retained artifacts; the tools remain responsible for accurately reporting their checks.
+With limited access, deliver the section 5 handoff as archivable Markdown and the section 7 checkpoint JSON in the conversation. Use the document labels `current-context.md` and `context-checkpoint.json` unless the user supplied explicit labels. These are conversation document names, not claims of saved paths. Copy the handoff label exactly into `canonical_handoff` and the bootstrap; keep any selector separate and reuse it verbatim. No disk copy, archive verification, or additional registry package is required. State any optional saves actually performed. The user controls custody of retained artifacts; the tools remain responsible for accurately reporting their checks.
 
 With sufficient access, perform the following normal saves automatically; saving is required:
 
@@ -255,6 +255,8 @@ If a detector flags a possible secret:
 ## 9. Validate and publish the checkpoint
 
 In the fallback, check the supplied Markdown and JSON agree on phases, identity, and safe-closure status; preserve secret exclusions and boundary warnings. Check only available evidence. Filesystem-only acceptance criteria and registry publication below apply to the normal workflow. Do not represent skipped checks as passed.
+
+After rendering, compare the literal handoff document label with `canonical_handoff` and the bootstrap's handoff reference. Check that every section-5 heading is a standalone Markdown heading. Repair any spelling mismatch or joined heading before reporting `READY FOR FRESH CONTEXT`; if a consistent pair cannot be delivered, report `WAIT` or the actual failure instead. Describe only the checks actually performed.
 
 ### 9A. Validate the canonical pair before publication
 

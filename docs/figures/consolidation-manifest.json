@@ -1,0 +1,73 @@
+{
+  "status": "retained draft, not accepted",
+  "treasure_source": "4dbf7ce217a907919c7aad90f4bdb9617146ece4",
+  "trash_source": "faeb9afd8857046f5022e25a826e48e1f5f61c68",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "treasure_sha256": "e92d29e54bcc861f2f229a3e9d3b791d7be0afcd1d1a56250eb7a13e93184bbf",
+      "trash_sha256": "e92d29e54bcc861f2f229a3e9d3b791d7be0afcd1d1a56250eb7a13e93184bbf",
+      "identical": true
+    },
+    {
+      "path": "docs/figures/README.md",
+      "treasure_sha256": "ef493691c916e9039ec34dbbdf4e0bd34a4f9e4a9ec20c57a4a2b3e34cd61d7d",
+      "trash_sha256": "ef493691c916e9039ec34dbbdf4e0bd34a4f9e4a9ec20c57a4a2b3e34cd61d7d",
+      "identical": true
+    },
+    {
+      "path": "docs/figures/provenance.json",
+      "treasure_sha256": "251352cbead357fad103e11c02a5b9e09f5d1efe1c6cdb86153aaf693d753817",
+      "trash_sha256": "251352cbead357fad103e11c02a5b9e09f5d1efe1c6cdb86153aaf693d753817",
+      "identical": true
+    },
+    {
+      "path": "docs/figures/trashpickup-treasurepickup-overview.html",
+      "treasure_sha256": "eb56c936e3e5b253802a77c6635834a6638910127812b3452928196f07e304e0",
+      "trash_sha256": "eb56c936e3e5b253802a77c6635834a6638910127812b3452928196f07e304e0",
+      "identical": true
+    },
+    {
+      "path": "docs/figures/trashpickup-treasurepickup-overview.pdf",
+      "treasure_sha256": "7b56089f8c6331a3e6b8d9f0176ffc59580b9a5d80dc549989b321bcef28aeb7",
+      "trash_sha256": "7b56089f8c6331a3e6b8d9f0176ffc59580b9a5d80dc549989b321bcef28aeb7",
+      "identical": true
+    },
+    {
+      "path": "references/engineering-foundations-references.html",
+      "treasure_sha256": "188f70c68ab0995d8cfdba9f245e783056c4844d3fec2d53ad7d22ca59dd2a9f",
+      "trash_sha256": "188f70c68ab0995d8cfdba9f245e783056c4844d3fec2d53ad7d22ca59dd2a9f",
+      "identical": true
+    },
+    {
+      "path": "references/engineering-foundations-references.pdf",
+      "treasure_sha256": "519e8af4ce72890d87f547d5bb217752d9eddfd6a6a8afe48a617ea740ba58b0",
+      "trash_sha256": "519e8af4ce72890d87f547d5bb217752d9eddfd6a6a8afe48a617ea740ba58b0",
+      "identical": true
+    },
+    {
+      "path": "references/figure-citation-notes.md",
+      "treasure_sha256": "02532169cb0c4912ce668b65aa4d969f0f5d743391761daf22e46199a65159f9",
+      "trash_sha256": "02532169cb0c4912ce668b65aa4d969f0f5d743391761daf22e46199a65159f9",
+      "identical": true
+    },
+    {
+      "path": "references/holzmann-crossref.json",
+      "treasure_sha256": "ed77bd8d0690ba2b64758b7d99fba51ecc1eaf51b7149452550a0aee20405313",
+      "trash_sha256": "ed77bd8d0690ba2b64758b7d99fba51ecc1eaf51b7149452550a0aee20405313",
+      "identical": true
+    },
+    {
+      "path": "references/verification.md",
+      "treasure_sha256": "b9feaaaea1d67cc507e1590672e2bfe7d5479627113c47550603b21763aa4abe",
+      "trash_sha256": "b9feaaaea1d67cc507e1590672e2bfe7d5479627113c47550603b21763aa4abe",
+      "identical": true
+    },
+    {
+      "path": "references/verified-entries.json",
+      "treasure_sha256": "c91b2dbc5b2d64a9f3db7602de385fa724d1104dcc3a1d32622f23e16bbb55db",
+      "trash_sha256": "c91b2dbc5b2d64a9f3db7602de385fa724d1104dcc3a1d32622f23e16bbb55db",
+      "identical": true
+    }
+  ]
+}

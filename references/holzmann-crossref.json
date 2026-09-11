@@ -1,0 +1,158 @@
+{
+  "indexed": {
+    "date-parts": [
+      [
+        2026,
+        7,
+        31
+      ]
+    ],
+    "date-time": "2026-07-31T22:41:17Z",
+    "timestamp": 1785537677036,
+    "version": "3.56.0"
+  },
+  "reference-count": 0,
+  "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+  "issue": "6",
+  "license": [
+    {
+      "start": {
+        "date-parts": [
+          [
+            2006,
+            6,
+            1
+          ]
+        ],
+        "date-time": "2006-06-01T00:00:00Z",
+        "timestamp": 1149120000000
+      },
+      "content-version": "vor",
+      "delay-in-days": 0,
+      "URL": "https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html"
+    }
+  ],
+  "content-domain": {
+    "domain": [],
+    "crossmark-restriction": false
+  },
+  "short-container-title": [
+    "Computer"
+  ],
+  "published-print": {
+    "date-parts": [
+      [
+        2006,
+        6
+      ]
+    ]
+  },
+  "DOI": "10.1109/mc.2006.212",
+  "type": "journal-article",
+  "created": {
+    "date-parts": [
+      [
+        2006,
+        6,
+        21
+      ]
+    ],
+    "date-time": "2006-06-21T16:06:22Z",
+    "timestamp": 1150905982000
+  },
+  "page": "95-97",
+  "source": "Crossref",
+  "is-referenced-by-count": 70,
+  "title": [
+    "The Power of 10: Rules for Developing Safety-Critical Code"
+  ],
+  "prefix": "10.1109",
+  "volume": "39",
+  "author": [
+    {
+      "given": "J.",
+      "family": "Gerald",
+      "sequence": "first",
+      "affiliation": [],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    }
+  ],
+  "member": "263",
+  "container-title": [
+    "Computer"
+  ],
+  "original-title": [],
+  "language": "en",
+  "link": [
+    {
+      "URL": "http://xplorestaging.ieee.org/ielx5/2/34424/01642624.pdf?arnumber=1642624",
+      "content-type": "unspecified",
+      "content-version": "vor",
+      "intended-application": "similarity-checking"
+    }
+  ],
+  "deposited": {
+    "date-parts": [
+      [
+        2021,
+        11,
+        29
+      ]
+    ],
+    "date-time": "2021-11-29T20:30:44Z",
+    "timestamp": 1638217844000
+  },
+  "score": 1,
+  "resource": {
+    "primary": {
+      "URL": "http://ieeexplore.ieee.org/document/1642624/"
+    }
+  },
+  "subtitle": [],
+  "short-title": [],
+  "issued": {
+    "date-parts": [
+      [
+        2006,
+        6
+      ]
+    ]
+  },
+  "references-count": 0,
+  "journal-issue": {
+    "issue": "6",
+    "published-print": {
+      "date-parts": [
+        [
+          2006,
+          6
+        ]
+      ]
+    }
+  },
+  "URL": "https://doi.org/10.1109/mc.2006.212",
+  "relation": {},
+  "ISSN": [
+    "0018-9162"
+  ],
+  "issn-type": [
+    {
+      "value": "0018-9162",
+      "type": "print"
+    }
+  ],
+  "subject": [],
+  "published": {
+    "date-parts": [
+      [
+        2006,
+        6
+      ]
+    ]
+  }
+}

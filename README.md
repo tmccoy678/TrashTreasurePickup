@@ -41,6 +41,6 @@ Read [A note from Taylor](references/author-note.md) about the project's origins
 
 ## Help and license
 
-[Setup and access](references/macos-setup.md) · [Operational protocol](references/pickup-registry.md) · [Security policy](SECURITY.md)
+[Setup and access](references/macos-setup.md) · [Update, recovery, and removal](references/lifecycle.md) · [Support](references/support.md) · [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md)
 
 The project uses the [MIT License](LICENSE). Bundled tools have their [own notices](https://github.com/tmccoy678/draft2staged-treasurepickup/blob/main/installer/THIRD_PARTY.md).

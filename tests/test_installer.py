@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shlex
 import shutil
 import subprocess
@@ -30,7 +31,7 @@ class InstallerTests(unittest.TestCase):
         for name, source in (("trashpickup", TRASH), ("treasurepickup", REPO)):
             target = self.bundle / name
             target.mkdir()
-            for item in ("SKILL.md", "README.md", "LICENSE", "agents", "references", "scripts"):
+            for item in ("SKILL.md", "README.md", "LICENSE", "SECURITY.md", "CONTRIBUTING.md", "agents", "references", "scripts"):
                 origin = source / item
                 if origin.is_dir():
                     shutil.copytree(origin, target / item, ignore=shutil.ignore_patterns("__pycache__"))
@@ -155,6 +156,47 @@ class InstallerTests(unittest.TestCase):
         process.stderr.close()
         process.wait(timeout=30)
         self.pickup("registry", "--help")
+
+    def test_update_rollback_and_documented_removal_preserve_records(self):
+        for custom in (False, True):
+            with self.subTest(custom_locations=custom):
+                self.skills = self.home / ("Custom skills" if custom else ".agents/skills")
+                audit = self.home / ("Custom audit" if custom else "Desktop/pickup_audit")
+                audit.mkdir(parents=True)
+                record = audit / "retained-handoff.md"
+                record.write_text("User-owned record")
+                bag = audit / "retained-bag.md"
+                bag.write_text("User-retained omitted content")
+                self.skills.mkdir(parents=True, exist_ok=True)
+                unrelated = self.skills / "unrelated"
+                unrelated.mkdir()
+                (unrelated / "SKILL.md").write_text("Keep this skill")
+                options = ("--skills-dir", str(self.skills), "--audit-dir", str(audit))
+                self.install(*options, "--yes")
+                old_skill = self.skills / "trashpickup" / "SKILL.md"
+                old_skill.write_text("User customization before update")
+                self.install(*options, input="\ny\n")
+                backup = next(self.skills.glob(".pickup-backup-*"))
+                self.assertEqual((backup / "trashpickup/SKILL.md").read_text(), "User customization before update")
+                parked = self.root / ("parked-custom" if custom else "parked-default")
+                parked.mkdir()
+                for name in ("trashpickup", "treasurepickup"):
+                    shutil.move(str(self.skills / name), parked / name)
+                    shutil.copytree(backup / name, self.skills / name)
+                self.pickup("registry", "--help")
+                self.assertEqual(old_skill.read_text(), "User customization before update")
+                (self.home / "Downloads").mkdir(exist_ok=True)
+                guide = (REPO / "references/lifecycle.md").read_text()
+                removal = re.findall(r"```bash\n(.*?)```", guide, re.S)[-1]
+                removal = removal.replace('pickup_skills="$HOME/.agents/skills"', "pickup_skills=" + shlex.quote(str(self.skills)))
+                result = subprocess.run(["/bin/bash"], input=removal, env=self.env, text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertFalse((self.skills / "trashpickup").exists())
+                self.assertFalse((self.skills / "treasurepickup").exists())
+                self.assertTrue(backup.is_dir())
+                self.assertEqual(record.read_text(), "User-owned record")
+                self.assertEqual(bag.read_text(), "User-retained omitted content")
+                self.assertEqual((unrelated / "SKILL.md").read_text(), "Keep this skill")
 
 
 if __name__ == "__main__":

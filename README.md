@@ -1,19 +1,46 @@
 # Treasure Pickup
 
-Download [pickup-install.command](https://github.com/tmccoy678/draft2staged-treasurepickup/blob/main/dist/pickup-install.command) through your authorized GitHub access, then run:
+**See what carried forward. Know what was checked.**
+
+Start your next AI session with the objective, decisions, known issues, and next steps brought together. Treasure Pickup reads the handoff and checkpoint from [Trash Pickup](https://github.com/tmccoy678/draft2staged-trashpickup), performs the checks your access permits, and returns a focused resume context with one readable receipt.
+
+The receipt makes performed checks and verification limits explicit. Treasure stops after reporting, leaving you in control of the next phase.
+
+## Install the pair
+
+The supported installer supplies **both skills and their tools**. Download [pickup-install.command](https://github.com/tmccoy678/draft2staged-treasurepickup/blob/main/dist/pickup-install.command) using your authorized GitHub access, then run:
 
 ```bash
 bash "$HOME/Downloads/pickup-install.command"
 ```
 
-Accept the setup defaults or choose your locations. This installs **both skills and their required tools**. Internet access is needed; no manual folder copying or separate Python, Git, Gitleaks, or jq setup is required. See [macOS setup](references/macos-setup.md) for details.
+Accept the defaults or choose your locations. Internet access is required; separate Python, Git, Gitleaks, or jq setup is unnecessary. This is a development snapshot, not a versioned release. Contributors testing this branch must build its matching source pair using the maintainer instructions; the main-branch download retains its own source identity.
 
-Treasure Pickup is a manual-only skill for reconstructing Trash Pickup's supplied handoff and checkpoint in a fresh context. It performs the checks permitted by the user's access, reports their limits, and returns bounded context plus one Markdown receipt. It never uses a trash bag or begins the next phase. `DONE` records pickup completion within the reported limits; it is not authorization.
+**Tested scope:** the existing installer was exercised on Apple Silicon with macOS 26.6.2. Native Intel, older macOS, and other agent hosts remain unverified; macOS 12 is a configured floor, not a tested-support claim. See [macOS setup](references/macos-setup.md) for paths, replacement backups, and access behavior.
 
-With sufficient authorized access, required folders, package selection and claims, verification gates, receipt history, and registry completion proceed automatically without another opt-in. Saving remains required. The helper retains its internal JSON records and saves one Markdown receipt containing the same recorded checks in `treasurepickup/receipts/`. Normal `DONE` still requires all normal verification and completion conditions.
+## First use
 
-With limited or no access, supply Trash's exact content as pasted text, readable attachments, or permitted files. Reconstruction and the receipt can finish in the conversation without disk output, registry claims, or inspecting inaccessible helpers. Saving is optional in this fallback. Missing bytes, hashes, execution, and live observations remain `UNKNOWN` or `NOT RUN`; actual mismatches and interrupted operations cannot become successful fallback results. Fallback `DONE` means reconstruction and reporting finished, with verification limits explicit.
+1. Explicitly select **trashpickup** after finishing a work phase. It produces a Markdown handoff and JSON checkpoint, or `WAIT` if important work is unfinished.
+2. In the **first substantive message of a fresh task**, explicitly select **treasurepickup** and supply the handoff/checkpoint and any confirmed package selector.
+3. Read the reconstructed context and receipt, then decide whether to begin the next phase.
 
-The user controls custody of retained artifacts; the tools remain responsible for reporting checks accurately. A supplied hash checks consistency with its baseline, not independent authorship. Pasted content alone does not prove original-file byte integrity or unobserved machine state.
+In Codex, type `$trashpickup` or `$treasurepickup` and select the named skill. The [complete first-use example](references/first-use.md) includes sample inputs, a WAIT case, and a restricted-access receipt.
 
-Normal storage uses `PICKUP_HOME` (default: `~/Desktop/pickup_audit`). Explicit paths take precedence; a custom compatibility output places Markdown receipts in its sibling `receipts/` folder. Follow [macOS setup](references/macos-setup.md) and the [Pickup Registry protocol](references/pickup-registry.md) when access permits their use. [SKILL.md](SKILL.md) defines both cases. Regression tests remain required for implementation acceptance; limited-access invocations need no inaccessible helpers or test suite.
+## Why choose Pickup?
+
+- **Close at a clear boundary.** Keep decisions, unresolved issues, and the next phase in a record you can inspect.
+- **Check what carried forward.** With the required access, the saved workflow checks package identity and hashes, then relevant live state for changes affecting the next phase.
+- **See the limits.** With restricted access, conversation delivery reports unavailable checks as `UNKNOWN` or `NOT RUN`. An actual failure still requires resolution.
+- **Keep the next step yours.** Treasure reconstructs and reports, then stops. Completion does not authorize subsequent work.
+
+Hashes establish consistency with a recorded baseline; they do not prove authorship or the truth of a handoff. Compaction, branches, and lightweight summaries remain useful for their own jobs. See [the short comparison and evidence map](references/comparison.md).
+
+## From the author
+
+Read [A note from Taylor](references/author-note.md) about the project's origins, the context problems that motivated it, and the invitation to improve its structure.
+
+## Help and license
+
+[Setup and access](references/macos-setup.md) · [Update, recovery, and removal](references/lifecycle.md) · [Support](references/support.md) · [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md)
+
+The project uses the [MIT License](LICENSE). Bundled tools have their [own notices](https://github.com/tmccoy678/draft2staged-treasurepickup/blob/main/installer/THIRD_PARTY.md).

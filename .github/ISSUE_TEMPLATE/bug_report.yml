@@ -1,0 +1,34 @@
+name: Reproducible problem
+description: Report a setup or behavior problem without private artifacts.
+body:
+  - type: markdown
+    attributes:
+      value: "For vulnerabilities, follow SECURITY.md. Keep secrets, real handoffs, and private audit records out of this form."
+  - type: input
+    id: identity
+    attributes:
+      label: Release or source commit
+      description: Include both source identities and installer digest when available.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Host and platform
+      description: Agent host, operating system, and architecture.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction and expected result
+      description: Use a small fictional example.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: Sanitized error and last confirmed operation.
+    validations:
+      required: true

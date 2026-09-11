@@ -7,15 +7,7 @@ Pickup fits a transition where you want deliberate phase closure, an inspectable
 | Make room in an active conversation | Native compaction | Separate handoff/checkpoint artifacts and a receipt. |
 | Explore another direction with history intact | A conversation fork or branch | Bounded reconstruction into a fresh task. |
 | Send a concise summary to another agent or person | A lightweight handoff | Closure assessment and, with sufficient access, package and live-state checks. |
-| Pause/resume inside a planning framework | Its paired workflow | A focused close/check/reconstruct/report contract. |
-
-These tools can coexist. Pairing is an established pattern. This comparison does not measure which tool retains more context or uses fewer tokens.
-
-## Inspected alternatives
-
-- [Matt Pocock's handoff](https://github.com/mattpocock/skills/blob/d28dfdc39beadc3142a33359b5cfa4765dcbd0bc/skills/productivity/handoff/SKILL.md) specifies a portable summary, artifact references, and redaction.
-- GSD's [pause](https://github.com/gsd-build/get-shit-done/blob/bdcaab2c752d9a33a1a1ca9acf3a3c81fb991815/get-shit-done/workflows/pause-work.md) and [resume](https://github.com/gsd-build/get-shit-done/blob/bdcaab2c752d9a33a1a1ca9acf3a3c81fb991815/get-shit-done/workflows/resume-project.md) include structured handoffs, incomplete-work/Git-divergence checks, and state-writing and execution-routing behavior. The cited repository was archived when inspected September 10, 2026.
-- [Codex context commands](https://learn.chatgpt.com/docs/developer-commands?surface=cli) and [Claude Code sessions](https://code.claude.com/docs/en/sessions) describe native compaction and branching.
+| Pause/resume inside a planning framework | Its paired workflow | A focused close/check/reconstruct/.com/docs/developer-commands?surface=cli) and [Claude Code sessions](https://code.claude.com/docs/en/sessions) describe native compaction
 
 ## Claim-to-evidence map
 

@@ -1,5 +1,9 @@
 # Treasure Pickup
 
+## Figures and references
+
+[Read the illustrated system guide](docs/figures/README.md) for the relevant PDF figures and reflowable HTML equivalents. The [44-work APA reference edition](references/engineering-foundations-references.pdf) includes a [source-verification audit](references/verification.md).
+
 **See what carried forward. Know what was checked.**
 
 Start your next AI session with the objective, decisions, known issues, and next steps brought together. Treasure Pickup reads the handoff and checkpoint from [Trash Pickup](https://github.com/tmccoy678/draft2staged-trashpickup), performs the checks your access permits, and returns a focused resume context with one readable receipt.

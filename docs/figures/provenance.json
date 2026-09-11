@@ -1,0 +1,91 @@
+{
+  "edition": "2026-09-11",
+  "scope": "Figures and references only",
+  "source_repositories": {
+    "draftdegs": "84f948be07bb083bb976d1a0474925ec2cb6bc89",
+    "draftdobeworks": "75e7ac4b587d1baaae4824cf06f17ee8689dea32",
+    "draft2staged-trashpickup": "bb44f27c5ab367c3ef0148457ad61977f99690d8",
+    "draft2staged-treasurepickup": "cb82e326861ca68a1020fdd48dbc93bc21c36e57"
+  },
+  "core_sources": [
+    {
+      "repository": "draftdegs",
+      "commit": "84f948be07bb083bb976d1a0474925ec2cb6bc89",
+      "path": "bin/engineering-gate.py",
+      "sha256": "cdaf77937cbe54a7611825edddd9502a058245a933ef3fae683870d28de0bbde",
+      "lines": 1213,
+      "url": "https://github.com/tmccoy678/draftdegs/blob/84f948be07bb083bb976d1a0474925ec2cb6bc89/bin/engineering-gate.py"
+    },
+    {
+      "repository": "draftdobeworks",
+      "commit": "75e7ac4b587d1baaae4824cf06f17ee8689dea32",
+      "path": "contexts/operational-system/docs/program/v1/qualification/phase-2/validation/validate_phase2.py",
+      "sha256": "762a57d09adca35638f76f9ccb6fb3f4b5be1c68477f081853722f29d44cf5a8",
+      "lines": 792,
+      "url": "https://github.com/tmccoy678/draftdobeworks/blob/75e7ac4b587d1baaae4824cf06f17ee8689dea32/contexts/operational-system/docs/program/v1/qualification/phase-2/validation/validate_phase2.py"
+    }
+  ],
+  "source_listing_redaction": "Case-insensitive owner-name tokens replaced with operator, Operator, or OPERATOR; all other lines preserved.",
+  "marie_original_sha256": "6047ed1af8339a90ebabb7ba5c3ccad9b9da244405db4975519cab79f79dbb81",
+  "historical_references_sha256": "fc6f090f2f9a937f6ab6d62cc505611969a18e00dde1ef026f5f981ad150c557",
+  "artifacts": [
+    {
+      "path": "docs/figures/trashpickup-treasurepickup-overview.pdf",
+      "sha256": "7b56089f8c6331a3e6b8d9f0176ffc59580b9a5d80dc549989b321bcef28aeb7"
+    },
+    {
+      "path": "docs/figures/trashpickup-treasurepickup-overview.html",
+      "sha256": "eb56c936e3e5b253802a77c6635834a6638910127812b3452928196f07e304e0"
+    },
+    {
+      "path": "references/engineering-foundations-references.pdf",
+      "sha256": "519e8af4ce72890d87f547d5bb217752d9eddfd6a6a8afe48a617ea740ba58b0"
+    },
+    {
+      "path": "references/engineering-foundations-references.html",
+      "sha256": "188f70c68ab0995d8cfdba9f245e783056c4844d3fec2d53ad7d22ca59dd2a9f"
+    }
+  ],
+  "pdf_checks": [
+    {
+      "file": "engineering-foundations-references.pdf",
+      "pages": 7,
+      "sha256": "519e8af4ce72890d87f547d5bb217752d9eddfd6a6a8afe48a617ea740ba58b0",
+      "fonts": [
+        "/AAAAAA+TimesNewRomanPS-BoldMT",
+        "/AAAAAA+TimesNewRomanPS-ItalicMT",
+        "/AAAAAA+TimesNewRomanPSMT"
+      ],
+      "links": 62,
+      "tagged_elements": 51
+    },
+    {
+      "file": "trashpickup-treasurepickup-overview.pdf",
+      "pages": 3,
+      "sha256": "7b56089f8c6331a3e6b8d9f0176ffc59580b9a5d80dc549989b321bcef28aeb7",
+      "fonts": [
+        "/AAAAAA+TimesNewRomanPS-BoldMT",
+        "/AAAAAA+TimesNewRomanPS-ItalicMT",
+        "/AAAAAA+TimesNewRomanPSMT"
+      ],
+      "links": 2,
+      "tagged_elements": 33
+    }
+  ],
+  "contrast": {
+    "#1F2933 on #FFFFFF": 14.76,
+    "#1F2933 on #F1F6F8": 13.55,
+    "#005A78 on #FFFFFF": 7.68,
+    "#005A78 on #F1F6F8": 7.05,
+    "#8C4300 on #FFFFFF": 7.2,
+    "#8C4300 on #F1F6F8": 6.61
+  },
+  "visual_review": "All 29 pages inspected; adjusted diagram heading and APA order; source plate inspected at high resolution.",
+  "accessibility_limit": "Tagged and structurally checked; not certified PDF/UA. Reading with a specific screen reader was not tested.",
+  "benchmark_scope": "Existing recorded results only; runtime suites not rerun for this documentation change.",
+  "build": {
+    "renderer_sha256": "478e2b595f65d76fb6060f7b2cb6de8f105d4d5d7d77fa55adb1068829293d28",
+    "checker_sha256": "4edc19e54af79b952f23eba8f1de9430a6f3d24472bf66fa2786d8ca19b1349d",
+    "method": "Local ReportLab authoring, pypdf tagging, Poppler render inspection; no external design service."
+  }
+}

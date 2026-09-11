@@ -7,7 +7,7 @@ Pickup fits a transition where you want deliberate phase closure, an inspectable
 | Make room in an active conversation | Native compaction | Separate handoff/checkpoint artifacts and a receipt. |
 | Explore another direction with history intact | A conversation fork or branch | Bounded reconstruction into a fresh task. |
 | Send a concise summary to another agent or person | A lightweight handoff | Closure assessment and, with sufficient access, package and live-state checks. |
-| Pause/resume inside a planning framework | Its paired workflow | A focused close/check/reconstruct/.com/docs/developer-commands?surface=cli) and [Claude Code sessions](https://code.claude.com/docs/en/sessions) describe native compaction
+| Pause/resume inside a planning framework | Its paired workflow | A focused close/check/reconstruct/
 
 ## Claim-to-evidence map
 

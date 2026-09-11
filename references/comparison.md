@@ -20,7 +20,6 @@ Pickup fits a transition where you want deliberate phase closure, an inspectable
 | Deliver through conversation with restricted access | [Trash][trash] and [Treasure][treasure] access rules | UNKNOWN/NOT RUN stays visible; actual failures retain their result. |
 | Coordinate packages and retain receipt history | [Registry protocol](pickup-registry.md) | Its documented cooperative-writer threat model, not a universal security/concurrency guarantee. |
 
-Sources pin the designs inspected September 10, 2026. Live product documentation can change. No comparative runtime, recall, performance, or security benchmark was conducted. Current skill instructions control their operation. The [author's note](author-note.md) is personal experience, not comparative test evidence.
 
 [trash]: https://github.com/tmccoy678/draft2staged-trashpickup/blob/04585979f8ba5c70c27faf5eda953a1480a1d81d/SKILL.md
 [treasure]: https://github.com/tmccoy678/draft2staged-treasurepickup/blob/f4249639498f78ace2ca6f19e37a28ea3c1cc20d/SKILL.md

@@ -11,8 +11,5 @@ As far as the $trash and $treasure skills go, they are what I consider as good a
 If there are concerns, questions, or corrections I would love to discuss them further.
 
 Thank you,
+
 Taylor
-
----
-
-This is the author's personal account, preserved in the author’s words. The standalone pair's tested scope is described in [macOS setup](macos-setup.md). DobeWorks/DEGS reintegration has not been verified for this standalone distribution; the note describes intent and an offer to discuss the original repositories.

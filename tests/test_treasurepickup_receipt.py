@@ -11,7 +11,7 @@ from typing import Optional
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "treasurepickup_receipt.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "treasurepickup" / "scripts" / "treasurepickup_receipt.py"
 
 
 class ReceiptCliTests(unittest.TestCase):

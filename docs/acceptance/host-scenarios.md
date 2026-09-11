@@ -2,10 +2,10 @@
 
 Use the candidate skills in disposable storage with an already authenticated Codex CLI. The opt-in runner creates temporary repository-scoped copies, verifies host discovery, and sends explicit skill inputs through the app-server protocol. It supplies the exact candidate skill as scenario instructions, outside user/assistant passages so Trash does not treat its own implementation as omitted conversation. This tests supplied-instruction execution, not automatic skill-text injection by the GUI. It leaves installed user skills and live Pickup records unchanged.
 
-Run from the Treasure source checkout:
+Run from the consolidated source checkout:
 
 ```bash
-python3 scripts/run_host_acceptance.py --trash ../draft2staged-trashpickup --output-dir /tmp/pickup-host-evidence
+python3 scripts/run_host_acceptance.py --output-dir /tmp/pickup-host-evidence
 ```
 
 Choose a new output directory to retain each run. The model is the host's configured default with low reasoning effort for this bounded check; results record both. Use `--scenario <name>` for a focused rerun. Results include fixture responses and no runtime task IDs. Review and sanitize responses before sharing; the runner does not automatically award a pass for generating text.

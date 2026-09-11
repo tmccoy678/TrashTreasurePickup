@@ -1,6 +1,8 @@
 """Exercise the installer CLI; downloaded tool distributions are test fixtures."""
 
+import base64
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -17,7 +19,7 @@ import unittest
 
 
 REPO = Path(__file__).resolve().parents[1]
-TRASH = REPO.parent / "draft2staged-trashpickup"
+TRASH = REPO / "skills" / "trashpickup"
 
 
 class InstallerTests(unittest.TestCase):
@@ -29,7 +31,7 @@ class InstallerTests(unittest.TestCase):
         self.home.mkdir()
         self.bundle = self.root / "bundle"
         self.bundle.mkdir()
-        for name, source in (("trashpickup", TRASH), ("treasurepickup", REPO)):
+        for name, source in (("trashpickup", TRASH), ("treasurepickup", REPO / "skills/treasurepickup")):
             target = self.bundle / name
             target.mkdir()
             for item in ("SKILL.md", "README.md", "LICENSE", "SECURITY.md", "CONTRIBUTING.md", "agents", "references", "scripts"):
@@ -73,6 +75,29 @@ class InstallerTests(unittest.TestCase):
                                 input=input, env={**self.env, **(extra_env or {})}, text=True, capture_output=True)
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
         return result
+
+    def interrupt_update(self, options):
+        process = subprocess.Popen(
+            ["/bin/bash", str(REPO / "installer/install.sh"), str(self.bundle), *options],
+            env=self.env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            start_new_session=True)
+        try:
+            self.assertIn(b"Installing", process.stdout.readline())
+            os.killpg(process.pid, signal.SIGTERM)
+            process.communicate(timeout=30)
+            self.assertNotEqual(process.returncode, 0)
+        finally:
+            if process.poll() is None:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.communicate(timeout=10)
+
+    def remove_with_documented_commands(self):
+        (self.home / "Downloads").mkdir(exist_ok=True)
+        guide = (REPO / "references/lifecycle.md").read_text()
+        removal = re.findall(r"```bash\n(.*?)```", guide, re.S)[-1]
+        removal = removal.replace('pickup_skills="$HOME/.agents/skills"', "pickup_skills=" + shlex.quote(str(self.skills)))
+        result = subprocess.run(["/bin/bash"], input=removal, env=self.env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_defaults_install_a_usable_pair_without_user_tool_configuration(self):
         result = self.install("--yes")
@@ -138,15 +163,65 @@ class InstallerTests(unittest.TestCase):
 
     def test_single_command_bundle_installs_the_pair(self):
         output = self.root / "pickup-install.command"
+        source = self.root / "single checkout"
+        shutil.copytree(REPO, source, ignore=shutil.ignore_patterns(".git", ".scratch", "dist", "__pycache__", ".pixi"))
+        shutil.copy2(self.assets, source / "installer/assets.tsv")
         build = subprocess.run([sys.executable, str(REPO / "installer" / "bundle.py"),
-                                "--trash", str(self.bundle / "trashpickup"),
-                                "--treasure", str(self.bundle / "treasurepickup"),
-                                "--installer", str(self.bundle / "installer"),
+                                "--source-root", str(source),
                                 "--output", str(output)], capture_output=True, text=True)
         self.assertEqual(build.returncode, 0, build.stderr)
         result = subprocess.run(["/bin/bash", str(output), "--yes"], env=self.env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.pickup("registry", "--help")
+
+    def test_previous_distribution_updates_without_losing_records(self):
+        retained = (REPO / "tests/fixtures/pickup-install-before-consolidation.command").read_bytes()
+        self.assertEqual(hashlib.sha256(retained).hexdigest(), "3e2595722f4a5c6b74c36fd06d54f0193db84be293a9e99a9ac5aca12cda8839")
+        encoded = retained.decode().split("<<'PICKUP_PAYLOAD'\n", 1)[1].split("\nPICKUP_PAYLOAD\n", 1)[0]
+        legacy = self.root / "previous distribution"
+        with tarfile.open(fileobj=io.BytesIO(base64.b64decode(encoded)), mode="r:gz") as archive:
+            archive.extractall(legacy, filter="data")
+        # Replace only the external download table; old installer and skill bytes
+        # remain those extracted from the retained distribution.
+        shutil.copy2(self.assets, legacy / "installer/assets.tsv")
+        old_skill = (legacy / "trashpickup/SKILL.md").read_bytes()
+        for custom in (False, True):
+            with self.subTest(custom_locations=custom):
+                self.skills = self.home / ("Custom legacy skills" if custom else ".agents/skills")
+                audit = self.home / ("Custom legacy audit" if custom else "Desktop/pickup_audit")
+                audit.mkdir(parents=True)
+                (audit / "sentinel.md").write_text("Retained audit record")
+                (audit / "bag.md").write_text("Retained optional bag")
+                unrelated = self.skills / "unrelated"
+                unrelated.mkdir(parents=True)
+                (unrelated / "SKILL.md").write_text("Unrelated skill")
+                options = ("--skills-dir", str(self.skills), "--audit-dir", str(audit))
+                installed = subprocess.run(["/bin/bash", str(legacy / "installer/install.sh"), str(legacy), *options, "--yes"], env=self.env, text=True, capture_output=True)
+                self.assertEqual(installed.returncode, 0, installed.stdout + installed.stderr)
+                self.assertEqual((self.skills / "trashpickup/SKILL.md").read_bytes(), old_skill)
+                self.pickup("registry", "--help")
+                self.interrupt_update(options)
+                self.assertEqual((self.skills / "trashpickup/SKILL.md").read_bytes(), old_skill)
+                self.pickup("registry", "--help")
+                self.install(*options, input="\ny\n")
+                backup = next(self.skills.glob(".pickup-backup-*"))
+                self.assertEqual((backup / "trashpickup/SKILL.md").read_bytes(), old_skill)
+                for name in ("trashpickup", "treasurepickup"):
+                    self.assertEqual((self.skills / name / "SKILL.md").read_bytes(), (REPO / "skills" / name / "SKILL.md").read_bytes())
+                parked = self.root / ("legacy-rollback-custom" if custom else "legacy-rollback-default")
+                parked.mkdir()
+                for name in ("trashpickup", "treasurepickup"):
+                    shutil.move(str(self.skills / name), parked / name)
+                    shutil.copytree(backup / name, self.skills / name)
+                    self.assertEqual((self.skills / name / "SKILL.md").read_bytes(), (legacy / name / "SKILL.md").read_bytes())
+                self.pickup("registry", "--help")
+                self.remove_with_documented_commands()
+                for name in ("trashpickup", "treasurepickup"):
+                    self.assertFalse((self.skills / name).exists())
+                    self.assertTrue((backup / name / "SKILL.md").is_file())
+                self.assertEqual((audit / "sentinel.md").read_text(), "Retained audit record")
+                self.assertEqual((audit / "bag.md").read_text(), "Retained optional bag")
+                self.assertEqual((unrelated / "SKILL.md").read_text(), "Unrelated skill")
 
     def test_closed_output_does_not_delete_tools_after_installation(self):
         process = subprocess.Popen(["/bin/bash", str(REPO / "installer" / "install.sh"), str(self.bundle), "--yes"],
@@ -186,12 +261,7 @@ class InstallerTests(unittest.TestCase):
                     shutil.copytree(backup / name, self.skills / name)
                 self.pickup("registry", "--help")
                 self.assertEqual(old_skill.read_text(), "User customization before update")
-                (self.home / "Downloads").mkdir(exist_ok=True)
-                guide = (REPO / "references/lifecycle.md").read_text()
-                removal = re.findall(r"```bash\n(.*?)```", guide, re.S)[-1]
-                removal = removal.replace('pickup_skills="$HOME/.agents/skills"', "pickup_skills=" + shlex.quote(str(self.skills)))
-                result = subprocess.run(["/bin/bash"], input=removal, env=self.env, text=True, capture_output=True)
-                self.assertEqual(result.returncode, 0, result.stderr)
+                self.remove_with_documented_commands()
                 self.assertFalse((self.skills / "trashpickup").exists())
                 self.assertFalse((self.skills / "treasurepickup").exists())
                 self.assertTrue(backup.is_dir())
@@ -213,19 +283,7 @@ class InstallerTests(unittest.TestCase):
                 unrelated = self.skills / "unrelated"
                 unrelated.mkdir()
                 (unrelated / "SKILL.md").write_text("Unrelated sentinel")
-                process = subprocess.Popen(
-                    ["/bin/bash", str(REPO / "installer/install.sh"), str(self.bundle), *options],
-                    env=self.env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    start_new_session=True)
-                try:
-                    self.assertIn(b"Installing", process.stdout.readline())
-                    os.killpg(process.pid, signal.SIGTERM)
-                    process.communicate(timeout=30)
-                    self.assertNotEqual(process.returncode, 0)
-                finally:
-                    if process.poll() is None:
-                        os.killpg(process.pid, signal.SIGKILL)
-                        process.communicate(timeout=10)
+                self.interrupt_update(options)
                 self.assertEqual((self.skills / "trashpickup/SKILL.md").read_bytes(), original)
                 self.assertEqual(retained.read_text(), "Keep the user's record")
                 self.assertEqual((unrelated / "SKILL.md").read_text(), "Unrelated sentinel")

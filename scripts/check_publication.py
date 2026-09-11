@@ -1,48 +1,48 @@
-"""Check paired documentation and syntax without invoking either Pickup skill."""
+"""Check repository and installed-package documentation without invoking Pickup."""
 
-import argparse
 import ast
 from pathlib import Path
 import re
 import subprocess
+import sys
+from urllib.parse import unquote
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "installer"))
+from sources import SKILLS, collect
 
 
-def check(trash, treasure):
-    references = []
-    for root in (trash, treasure):
-        references.append({p.name: p.read_bytes() for p in (root / "references").glob("*.md")})
-        documents = [root / name for name in ("README.md", "SECURITY.md", "LICENSE", "CONTRIBUTING.md", "AGENTS.md", "SKILL.md")]
-        documents += list((root / "references").glob("*.md")) + list((root / "docs").rglob("*.md"))
-        for path in documents:
-            text = path.read_text()
-            for target in re.findall(r"\[[^\]\n]+\]\(([^)\n]+)\)", text):
-                if target.startswith(("https://", "http://", "#")):
-                    continue
-                destination = target.split("#", 1)[0]
-                if not (path.parent / destination).is_file():
-                    raise ValueError(f"Missing link from {path.relative_to(root)}: {target}")
-        metadata = (root / "agents/openai.yaml").read_text()
-        if "allow_implicit_invocation: false" not in metadata:
-            raise ValueError(f"Explicit-only policy missing: {root.name}")
-    if references[0] != references[1]:
-        raise ValueError("Paired references differ")
-    if (trash / "LICENSE").read_bytes() != (treasure / "LICENSE").read_bytes():
-        raise ValueError("Paired project licenses differ")
-    for folder in ("installer", "scripts", "tests"):
-        for path in (treasure / folder).glob("*.py"):
+def check_links(path, text):
+    targets = re.findall(r"\[[^\]\n]+\]\(([^)\n]+)\)", text)
+    targets += re.findall(r"^\[[^\]\n]+\]:\s*(\S+)", text, re.M)
+    for target in targets:
+        if target.startswith(("https://", "http://", "#", "mailto:")):
+            continue
+        destination = unquote(target.split("#", 1)[0])
+        if not (path.parent / destination).is_file():
+            raise ValueError(f"Missing link from {path.relative_to(ROOT)}: {target}")
+
+
+def check():
+    files, _ = collect(ROOT)
+    documents = [ROOT / name for name in ("README.md", "SECURITY.md", "CONTRIBUTING.md", "AGENTS.md")]
+    for folder in ("references", "docs", "skills"):
+        documents.extend((ROOT / folder).rglob("*.md"))
+    for path in documents:
+        check_links(path, path.read_text())
+    for name in SKILLS:
+        if "allow_implicit_invocation: false" not in files[name + "/agents/openai.yaml"].decode():
+            raise ValueError(f"Explicit-only policy missing: {name}")
+    for folder in ("installer", "scripts", "tests", "skills"):
+        for path in (ROOT / folder).rglob("*.py"):
             ast.parse(path.read_text(), filename=str(path))
-    for relative in ("installer/install.sh", "scripts/pickup", "dist/pickup-install.command"):
-        subprocess.run(["/bin/bash", "-n", str(treasure / relative)], check=True)
-    print("Paired references, local links, explicit invocation policy, licenses, and syntax: PASS")
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--trash", type=Path, required=True)
-    parser.add_argument("--treasure", type=Path, default=Path(__file__).resolve().parents[1])
-    args = parser.parse_args()
-    check(args.trash.resolve(), args.treasure.resolve())
+    for relative in ("installer/install.sh", "skills/treasurepickup/scripts/pickup", "dist/pickup-install.command"):
+        subprocess.run(["/bin/bash", "-n", str(ROOT / relative)], check=True)
+    print("Shared documents, local links, explicit invocation policy, licenses, and syntax: PASS")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        check()
+    except (OSError, ValueError) as error:
+        raise SystemExit(str(error))

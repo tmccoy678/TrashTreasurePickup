@@ -76,6 +76,29 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
         return result
 
+    def interrupt_update(self, options):
+        process = subprocess.Popen(
+            ["/bin/bash", str(REPO / "installer/install.sh"), str(self.bundle), *options],
+            env=self.env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            start_new_session=True)
+        try:
+            self.assertIn(b"Installing", process.stdout.readline())
+            os.killpg(process.pid, signal.SIGTERM)
+            process.communicate(timeout=30)
+            self.assertNotEqual(process.returncode, 0)
+        finally:
+            if process.poll() is None:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.communicate(timeout=10)
+
+    def remove_with_documented_commands(self):
+        (self.home / "Downloads").mkdir(exist_ok=True)
+        guide = (REPO / "references/lifecycle.md").read_text()
+        removal = re.findall(r"```bash\n(.*?)```", guide, re.S)[-1]
+        removal = removal.replace('pickup_skills="$HOME/.agents/skills"', "pickup_skills=" + shlex.quote(str(self.skills)))
+        result = subprocess.run(["/bin/bash"], input=removal, env=self.env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_defaults_install_a_usable_pair_without_user_tool_configuration(self):
         result = self.install("--yes")
         self.assertIn("Pickup installed", result.stdout)
@@ -177,15 +200,28 @@ class InstallerTests(unittest.TestCase):
                 self.assertEqual(installed.returncode, 0, installed.stdout + installed.stderr)
                 self.assertEqual((self.skills / "trashpickup/SKILL.md").read_bytes(), old_skill)
                 self.pickup("registry", "--help")
+                self.interrupt_update(options)
+                self.assertEqual((self.skills / "trashpickup/SKILL.md").read_bytes(), old_skill)
+                self.pickup("registry", "--help")
                 self.install(*options, input="\ny\n")
                 backup = next(self.skills.glob(".pickup-backup-*"))
                 self.assertEqual((backup / "trashpickup/SKILL.md").read_bytes(), old_skill)
                 for name in ("trashpickup", "treasurepickup"):
                     self.assertEqual((self.skills / name / "SKILL.md").read_bytes(), (REPO / "skills" / name / "SKILL.md").read_bytes())
+                parked = self.root / ("legacy-rollback-custom" if custom else "legacy-rollback-default")
+                parked.mkdir()
+                for name in ("trashpickup", "treasurepickup"):
+                    shutil.move(str(self.skills / name), parked / name)
+                    shutil.copytree(backup / name, self.skills / name)
+                    self.assertEqual((self.skills / name / "SKILL.md").read_bytes(), (legacy / name / "SKILL.md").read_bytes())
+                self.pickup("registry", "--help")
+                self.remove_with_documented_commands()
+                for name in ("trashpickup", "treasurepickup"):
+                    self.assertFalse((self.skills / name).exists())
+                    self.assertTrue((backup / name / "SKILL.md").is_file())
                 self.assertEqual((audit / "sentinel.md").read_text(), "Retained audit record")
                 self.assertEqual((audit / "bag.md").read_text(), "Retained optional bag")
                 self.assertEqual((unrelated / "SKILL.md").read_text(), "Unrelated skill")
-                self.pickup("registry", "--help")
 
     def test_closed_output_does_not_delete_tools_after_installation(self):
         process = subprocess.Popen(["/bin/bash", str(REPO / "installer" / "install.sh"), str(self.bundle), "--yes"],
@@ -225,12 +261,7 @@ class InstallerTests(unittest.TestCase):
                     shutil.copytree(backup / name, self.skills / name)
                 self.pickup("registry", "--help")
                 self.assertEqual(old_skill.read_text(), "User customization before update")
-                (self.home / "Downloads").mkdir(exist_ok=True)
-                guide = (REPO / "references/lifecycle.md").read_text()
-                removal = re.findall(r"```bash\n(.*?)```", guide, re.S)[-1]
-                removal = removal.replace('pickup_skills="$HOME/.agents/skills"', "pickup_skills=" + shlex.quote(str(self.skills)))
-                result = subprocess.run(["/bin/bash"], input=removal, env=self.env, text=True, capture_output=True)
-                self.assertEqual(result.returncode, 0, result.stderr)
+                self.remove_with_documented_commands()
                 self.assertFalse((self.skills / "trashpickup").exists())
                 self.assertFalse((self.skills / "treasurepickup").exists())
                 self.assertTrue(backup.is_dir())
@@ -252,19 +283,7 @@ class InstallerTests(unittest.TestCase):
                 unrelated = self.skills / "unrelated"
                 unrelated.mkdir()
                 (unrelated / "SKILL.md").write_text("Unrelated sentinel")
-                process = subprocess.Popen(
-                    ["/bin/bash", str(REPO / "installer/install.sh"), str(self.bundle), *options],
-                    env=self.env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    start_new_session=True)
-                try:
-                    self.assertIn(b"Installing", process.stdout.readline())
-                    os.killpg(process.pid, signal.SIGTERM)
-                    process.communicate(timeout=30)
-                    self.assertNotEqual(process.returncode, 0)
-                finally:
-                    if process.poll() is None:
-                        os.killpg(process.pid, signal.SIGKILL)
-                        process.communicate(timeout=10)
+                self.interrupt_update(options)
                 self.assertEqual((self.skills / "trashpickup/SKILL.md").read_bytes(), original)
                 self.assertEqual(retained.read_text(), "Keep the user's record")
                 self.assertEqual((unrelated / "SKILL.md").read_text(), "Unrelated sentinel")

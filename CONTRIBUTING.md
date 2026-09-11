@@ -26,7 +26,7 @@ After committing every distributed input, use the maintainer build instructions 
 
 Preserve explicit-only invocation, freshness checks, normal required authorized persistence, restricted-access reporting, exact status meanings, failure precedence, and the stop before next-phase work. The approved verifier and trash-bag renderer stay unchanged unless a later task explicitly changes their contract.
 
-Keep human persuasion in the README and operational instructions in the skills/references. Put conditions beside their actions, preserve one authoritative status definition, and update duplicated references identically in both repositories. Source comparative claims and qualify access/host limits. Keep project MIT texts and all applicable third-party notices intact.
+Keep human persuasion in the README and operational instructions in the skills/references. Put conditions beside their actions, preserve one authoritative status definition, and edit shared root references and synchronize their package copies. Source comparative claims and qualify access/host limits. Keep project MIT texts and all applicable third-party notices intact.
 
 For behavior changes, add a failing test at an agreed public boundary, make it pass, and review the diff against both these standards and the issue's acceptance criteria. Prose needs relevant walkthroughs and link/consistency checks, not sentence snapshot tests. Preserve user data in disposable lifecycle tests.
 

@@ -179,7 +179,8 @@ class InstallerTests(unittest.TestCase):
             / "treasurepickup"
             / "pickups"
         )
-        (registry / "tracks").mkdir(parents=True, mode=0o700)
+        registry.mkdir(parents=True, mode=0o700)
+        (registry / "tracks").mkdir(mode=0o700)
 
         result = self.pickup("init", expected=3)
 

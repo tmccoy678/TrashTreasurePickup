@@ -8465,7 +8465,13 @@ def initialize_registry(*, registry_root: Path) -> Dict[str, Any]:
     )
     if root_expectation.existed:
         with registry_lock(registry_root, create=False):
-            if directory_children(registry_root):
+            children = directory_children(registry_root)
+            if children:
+                child_names = {child.name for child in children}
+                if {"index.json", "tracks"} - child_names:
+                    raise RegistryError(
+                        "ORPHANED_CLAIM_REVIEW_REQUIRED", exit_code=3
+                    )
                 index = load_index(registry_root)
                 if reconcile_registry_views(registry_root, index):
                     raise RegistryError("PACKAGE_ARTIFACT_DRIFT", exit_code=3)

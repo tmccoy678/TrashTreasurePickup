@@ -75,6 +75,16 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
         return result
 
+    def audit_snapshot(self, audit):
+        return {
+            str(path.relative_to(audit)): (
+                path.lstat().st_ino,
+                stat.S_IMODE(path.lstat().st_mode),
+                path.read_bytes() if path.is_file() else None,
+            )
+            for path in audit.rglob("*")
+        }
+
     def test_defaults_install_a_usable_pair_without_user_tool_configuration(self):
         result = self.install("--yes")
         self.assertIn("Pickup installed", result.stdout)
@@ -126,26 +136,55 @@ class InstallerTests(unittest.TestCase):
         first = json.loads(self.pickup("init").stdout)
         audit = self.home / "Desktop" / "pickup_audit"
 
-        before = {
-            str(path.relative_to(audit)): (
-                path.lstat().st_ino,
-                stat.S_IMODE(path.lstat().st_mode),
-                path.read_bytes() if path.is_file() else None,
-            )
-            for path in audit.rglob("*")
-        }
+        before = self.audit_snapshot(audit)
         second = json.loads(self.pickup("init").stdout)
-        after = {
-            str(path.relative_to(audit)): (
-                path.lstat().st_ino,
-                stat.S_IMODE(path.lstat().st_mode),
-                path.read_bytes() if path.is_file() else None,
-            )
-            for path in audit.rglob("*")
-        }
+        after = self.audit_snapshot(audit)
 
         self.assertEqual(second, first)
         self.assertEqual(after, before)
+
+    def test_init_completes_a_precreated_empty_registry_directory(self):
+        self.install("--yes")
+        registry = (
+            self.home
+            / "Desktop"
+            / "pickup_audit"
+            / "treasurepickup"
+            / "pickups"
+        )
+        registry.mkdir(parents=True, mode=0o700)
+
+        initialized = json.loads(self.pickup("init").stdout)
+
+        self.assertEqual(
+            initialized,
+            {
+                "claims": 0,
+                "packages": 0,
+                "registry": "READY",
+                "schema_version": 1,
+            },
+        )
+        self.assertTrue((registry / "tracks").is_dir())
+        self.assertTrue((registry / "index.json").is_file())
+        self.assertEqual(stat.S_IMODE((registry / "tracks").stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE((registry / "index.json").stat().st_mode), 0o600)
+
+    def test_init_rejects_a_partially_initialized_registry(self):
+        self.install("--yes")
+        registry = (
+            self.home
+            / "Desktop"
+            / "pickup_audit"
+            / "treasurepickup"
+            / "pickups"
+        )
+        (registry / "tracks").mkdir(parents=True, mode=0o700)
+
+        result = self.pickup("init", expected=3)
+
+        self.assertNotEqual(json.loads(result.stderr)["reason_code"], "READY")
+        self.assertFalse((registry / "index.json").exists())
 
     def test_init_preserves_an_existing_published_package(self):
         self.install("--yes")
@@ -180,24 +219,10 @@ class InstallerTests(unittest.TestCase):
             ).stdout
         )
         audit = self.home / "Desktop" / "pickup_audit"
-        before = {
-            str(path.relative_to(audit)): (
-                path.lstat().st_ino,
-                stat.S_IMODE(path.lstat().st_mode),
-                path.read_bytes() if path.is_file() else None,
-            )
-            for path in audit.rglob("*")
-        }
+        before = self.audit_snapshot(audit)
 
         initialized = json.loads(self.pickup("init").stdout)
-        after = {
-            str(path.relative_to(audit)): (
-                path.lstat().st_ino,
-                stat.S_IMODE(path.lstat().st_mode),
-                path.read_bytes() if path.is_file() else None,
-            )
-            for path in audit.rglob("*")
-        }
+        after = self.audit_snapshot(audit)
 
         self.assertEqual(published["state"], "AVAILABLE")
         self.assertEqual(

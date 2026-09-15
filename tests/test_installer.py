@@ -9,6 +9,7 @@ import re
 import shlex
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import tarfile
@@ -85,6 +86,130 @@ class InstallerTests(unittest.TestCase):
         config = json.loads(self.pickup("config").stdout)
         self.assertEqual(config["pickup_home"], str(self.home / "Desktop" / "pickup_audit"))
         self.assertFalse((self.home / "Desktop").exists(), "Installation must not create pickup history")
+
+    def test_first_use_init_creates_only_empty_private_registry(self):
+        self.install("--yes")
+
+        initialized = json.loads(self.pickup("init").stdout)
+
+        audit = self.home / "Desktop" / "pickup_audit"
+        registry = audit / "treasurepickup" / "pickups"
+        self.assertEqual(
+            initialized,
+            {
+                "claims": 0,
+                "packages": 0,
+                "registry": "READY",
+                "schema_version": 1,
+            },
+        )
+        self.assertEqual(
+            sorted(
+                str(path.relative_to(audit))
+                for path in audit.rglob("*")
+            ),
+            [
+                "trashpickup",
+                "trashpickup/context-archive",
+                "treasurepickup",
+                "treasurepickup/pickups",
+                "treasurepickup/pickups/index.json",
+                "treasurepickup/pickups/tracks",
+            ],
+        )
+        self.assertEqual(stat.S_IMODE(registry.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE((registry / "tracks").stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE((registry / "index.json").stat().st_mode), 0o600)
+
+    def test_init_is_idempotent_for_existing_empty_registry(self):
+        self.install("--yes")
+        first = json.loads(self.pickup("init").stdout)
+        audit = self.home / "Desktop" / "pickup_audit"
+
+        before = {
+            str(path.relative_to(audit)): (
+                path.lstat().st_ino,
+                stat.S_IMODE(path.lstat().st_mode),
+                path.read_bytes() if path.is_file() else None,
+            )
+            for path in audit.rglob("*")
+        }
+        second = json.loads(self.pickup("init").stdout)
+        after = {
+            str(path.relative_to(audit)): (
+                path.lstat().st_ino,
+                stat.S_IMODE(path.lstat().st_mode),
+                path.read_bytes() if path.is_file() else None,
+            )
+            for path in audit.rglob("*")
+        }
+
+        self.assertEqual(second, first)
+        self.assertEqual(after, before)
+
+    def test_init_preserves_an_existing_published_package(self):
+        self.install("--yes")
+        self.pickup("init")
+        resource = self.root / "project"
+        resource.mkdir()
+        handoff = self.root / "handoff.md"
+        handoff.write_text("# Ready handoff\n")
+        checkpoint = self.root / "checkpoint.json"
+        checkpoint.write_text(
+            json.dumps(
+                {
+                    "context_status": "READY",
+                    "generated_at": "2026-09-15T12:00:00-05:00",
+                    "canonical_handoff": str(handoff),
+                }
+            )
+            + "\n"
+        )
+        published = json.loads(
+            self.pickup(
+                "registry",
+                "publish",
+                "--track-id",
+                "first-use",
+                "--resource-scope",
+                str(resource),
+                "--handoff",
+                str(handoff),
+                "--checkpoint",
+                str(checkpoint),
+            ).stdout
+        )
+        audit = self.home / "Desktop" / "pickup_audit"
+        before = {
+            str(path.relative_to(audit)): (
+                path.lstat().st_ino,
+                stat.S_IMODE(path.lstat().st_mode),
+                path.read_bytes() if path.is_file() else None,
+            )
+            for path in audit.rglob("*")
+        }
+
+        initialized = json.loads(self.pickup("init").stdout)
+        after = {
+            str(path.relative_to(audit)): (
+                path.lstat().st_ino,
+                stat.S_IMODE(path.lstat().st_mode),
+                path.read_bytes() if path.is_file() else None,
+            )
+            for path in audit.rglob("*")
+        }
+
+        self.assertEqual(published["state"], "AVAILABLE")
+        self.assertEqual(
+            initialized,
+            {
+                "claims": 0,
+                "packages": 1,
+                "registry": "READY",
+                "schema_version": 1,
+            },
+        )
+        self.assertEqual(after, before)
 
     def test_failed_download_can_retry_without_changing_existing_data(self):
         audit = self.home / "Desktop" / "pickup_audit"

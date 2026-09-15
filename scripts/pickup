@@ -5,11 +5,16 @@ source "$scripts/pickup-env.sh"
 command=${1:-config}
 if [[ $# -gt 0 ]]; then shift; fi
 case "$command" in
+    init)
+        pickup_home=$("$pickup_python" -c 'import os; from pathlib import Path; print(Path(os.environ["PICKUP_HOME"]).expanduser().resolve())')
+        mkdir -p "$pickup_home/trashpickup/context-archive" "$pickup_home/treasurepickup"
+        exec "$pickup_python" "$scripts/pickup_registry.py" initialize
+        ;;
     registry) exec "$pickup_python" "$scripts/pickup_registry.py" "$@" ;;
     receipt) exec "$pickup_python" "$scripts/treasurepickup_receipt.py" "$@" ;;
     python) exec "$pickup_python" "$@" ;;
     git) exec "$pickup_git" "$@" ;;
     gitleaks) exec "$pickup_gitleaks" "$@" ;;
     config) exec "$pickup_python" -c 'import json,os; from pathlib import Path; print(json.dumps({"pickup_home":str(Path(os.environ["PICKUP_HOME"]).expanduser().resolve())}))' ;;
-    *) echo 'Use: pickup {registry|receipt|python|git|gitleaks|config}' >&2; exit 2 ;;
+    *) echo 'Use: pickup {init|registry|receipt|python|git|gitleaks|config}' >&2; exit 2 ;;
 esac

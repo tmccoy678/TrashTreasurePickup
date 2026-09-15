@@ -8386,6 +8386,109 @@ def release_checkpoint(
         )
 
 
+def initialize_registry(*, registry_root: Path) -> Dict[str, Any]:
+    validate_registry_root_path(registry_root)
+    root_expectation = capture_directory_expectation(
+        registry_root, "REGISTRY_ROOT_INVALID"
+    )
+    if root_expectation.existed:
+        with registry_lock(registry_root, create=False):
+            index = load_index(registry_root)
+            if reconcile_registry_views(registry_root, index):
+                raise RegistryError("PACKAGE_ARTIFACT_DRIFT", exit_code=3)
+            return {
+                "registry": "READY",
+                "schema_version": index["schema_version"],
+                "packages": sum(
+                    len(track["packages"])
+                    for track in index["tracks"].values()
+                ),
+                "claims": sum(
+                    isinstance(track.get("active_claim"), dict)
+                    for track in index["tracks"].values()
+                ),
+            }
+
+    owned_root = secure_directory(
+        registry_root,
+        expectation=root_expectation,
+        reason_code="REGISTRY_ROOT_INVALID",
+    )
+    if owned_root is None:
+        raise RegistryError("REGISTRY_ROOT_INVALID", exit_code=3)
+
+    committed = False
+    index: Optional[Dict[str, Any]] = None
+    try:
+        with registry_lock(registry_root, create=False):
+            if directory_children(registry_root):
+                raise RegistryError("ORPHANED_CLAIM_REVIEW_REQUIRED", exit_code=3)
+
+            tracks_root = registry_root / "tracks"
+            tracks_expectation = capture_directory_expectation(
+                tracks_root, "ORPHANED_CLAIM_REVIEW_REQUIRED"
+            )
+            owned_tracks = secure_directory(
+                tracks_root,
+                expectation=tracks_expectation,
+                reason_code="ORPHANED_CLAIM_REVIEW_REQUIRED",
+            )
+            if owned_tracks is None:
+                raise RegistryError("ORPHANED_CLAIM_REVIEW_REQUIRED", exit_code=3)
+
+            try:
+                index_path = registry_root / "index.json"
+                destination = capture_mutable_destination(
+                    index_path,
+                    parent_reason_code="REGISTRY_VIEW_PARENT_UNAVAILABLE",
+                    invalid_reason_code="ORPHANED_CLAIM_REVIEW_REQUIRED",
+                )
+                if destination.existed:
+                    raise RegistryError(
+                        "ORPHANED_CLAIM_REVIEW_REQUIRED", exit_code=3
+                    )
+                index = empty_index()
+                write = MutableWrite(
+                    path=index_path,
+                    payload=index,
+                    parent_reason_code="REGISTRY_VIEW_PARENT_UNAVAILABLE",
+                    invalid_reason_code="ORPHANED_CLAIM_REVIEW_REQUIRED",
+                    expected_destination=destination,
+                )
+                validate_mutable_payload(write)
+                commit_file_transaction(
+                    registry_root=registry_root,
+                    immutable_writes=(),
+                    mutable_writes=(write,),
+                )
+                committed = True
+                if reconcile_registry_views(registry_root, index):
+                    raise RegistryError(
+                        "ORPHANED_CLAIM_REVIEW_REQUIRED", exit_code=3
+                    )
+                if load_index(registry_root) != index:
+                    raise RegistryError(
+                        "ORPHANED_CLAIM_REVIEW_REQUIRED", exit_code=3
+                    )
+            except BaseException:
+                if not committed:
+                    remove_owned_empty_directories((owned_tracks,))
+                raise
+    except BaseException:
+        if not committed:
+            remove_owned_empty_directories((owned_root,))
+        raise
+
+    if index is None:
+        raise RegistryError("REGISTRY_INITIALIZATION_INCOMPLETE", exit_code=3)
+    return {
+        "registry": "READY",
+        "schema_version": index["schema_version"],
+        "packages": 0,
+        "claims": 0,
+    }
+
+
 def inspect(*, registry_root: Path, selector: Optional[str]) -> Dict[str, Any]:
     validate_registry_root_path(registry_root)
     if not registry_root.exists() and not registry_root.is_symlink():
@@ -8454,6 +8557,10 @@ def build_parser() -> argparse.ArgumentParser:
     publish.add_argument("--checkpoint", required=True)
     publish.add_argument("--gitleaks-path", default=shutil.which("gitleaks") or "")
     publish.set_defaults(handler=handle_publish)
+
+    initialize = commands.add_parser("initialize")
+    initialize.add_argument("--registry-root", default=None)
+    initialize.set_defaults(handler=handle_initialize)
 
     inspect_command = commands.add_parser("inspect")
     inspect_command.add_argument("--registry-root", default=None)
@@ -8544,6 +8651,10 @@ def handle_publish(args: argparse.Namespace) -> Dict[str, Any]:
         resource_scopes=args.resource_scope,
         gitleaks_path=args.gitleaks_path,
     )
+
+
+def handle_initialize(args: argparse.Namespace) -> Dict[str, Any]:
+    return initialize_registry(registry_root=Path(args.registry_root))
 
 
 def handle_inspect(args: argparse.Namespace) -> Dict[str, Any]:

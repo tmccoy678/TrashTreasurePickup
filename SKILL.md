@@ -30,7 +30,7 @@ Before resolving helpers or reading artifacts, establish that the explicit invoc
 
 ## Workspace paths when access permits
 
-Before using the registry, follow [macOS setup](references/macos-setup.md) to resolve `pickup_workspace` and locate the bundled registry helper. Load the installed tool configuration described there. The Pickup location follows the explicit selection, then `PICKUP_HOME`, then the saved audit location, defaulting to `~/Desktop/pickup_audit`. Use `"$pickup_python"` for Python and `"$pickup_git"` for repository checks.
+Before using the registry, follow [macOS setup](references/macos-setup.md) to resolve `pickup_workspace`, locate the bundled registry helper, and run its idempotent `pickup init` operation. Load the installed tool configuration described there. The Pickup location follows the explicit selection, then `PICKUP_HOME`, then the saved audit location, defaulting to `~/Desktop/pickup_audit`. Use `"$pickup_python"` for Python and `"$pickup_git"` for repository checks.
 
 Use absolute paths. Explicit command-line paths take precedence. Registry `claim --workspace` supplies the observed workspace and the default registry location; an explicit `--registry-root` wins. The default compatibility output follows the registry's existing workspace binding: two parent directories above the registry, then `treasurepickup/context-resume.json`. `--compatibility-output` overrides that default. Existing workspace and output binding checks still apply. Other registry commands use `PICKUP_HOME` when `--registry-root` is omitted.
 

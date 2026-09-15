@@ -30,15 +30,17 @@ pickup_registry_root="$pickup_workspace/treasurepickup/pickups"
 
 The generated configuration supplies the tool paths and saved audit location to this command or shell only. It does not change shell startup files. An explicit Pickup location takes precedence over `PICKUP_HOME`, which takes precedence over the saved location. Helper command-line paths retain their existing precedence. Quote all paths. Use `"$pickup_python"` for Python and checkpoint JSON validation, `"$pickup_git"` for repository checks, and `"$pickup_gitleaks"` for scanning. Scanner discovery through the configured command PATH still works, and `--gitleaks-path` overrides it.
 
-For direct helper use, the installed `scripts/pickup` command also accepts `registry`, `receipt`, `python`, `git`, `gitleaks`, or `config`. It loads the same configuration and forwards arguments. Use the original helper gates and verified values, as described in the [registry protocol](pickup-registry.md).
+For direct helper use, the installed `scripts/pickup` command also accepts `init`, `registry`, `receipt`, `python`, `git`, `gitleaks`, or `config`. It loads the same configuration and forwards arguments. Use the original helper gates and verified values, as described in the [registry protocol](pickup-registry.md).
 
 ## Storage and access
 
-With sufficient authorized access, automatically create the required folders during the normal skill invocation, then save and verify the handoff, archive, checkpoint, registry package, and receipt as usual:
+With sufficient authorized access, run the idempotent first-use operation during the normal skill invocation, before any registry command:
 
 ```bash
-mkdir -p "$pickup_workspace/trashpickup/context-archive" "$pickup_workspace/treasurepickup"
+"$treasurepickup_skill/scripts/pickup" init
 ```
+
+The command creates the required Trash and Treasure folders and a private empty schema-v1 registry when they are absent. On later invocations it validates the existing registry and reports package and active-claim counts without changing registry objects. It creates no package, claim, receipt, quarantine, compatibility output, or phase authorization.
 
 Existing grants activate this workflow without an additional opt-in. Limited or no access retains conversation delivery using supplied evidence and permitted reads; unavailable installation files or helpers are not required for that workflow. Saving is optional only in that fallback. Denied access does not require a broader-access request. An actual failed check or interrupted normal transaction remains a failure, not a successful fallback result.
 

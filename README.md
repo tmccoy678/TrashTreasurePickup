@@ -28,6 +28,8 @@ Accept the defaults or choose your locations. Internet access is required; separ
 2. In the **first substantive message of a fresh task**, explicitly select **treasurepickup** and supply the handoff/checkpoint and any confirmed package selector.
 3. Read the reconstructed context and receipt, then decide whether to begin the next phase.
 
+With filesystem access, either skill runs the installed `pickup init` operation before registry work. First use creates only the configured audit folders and an empty private registry; later calls validate and preserve existing Pickup state.
+
 In Codex, type `$trashpickup` or `$treasurepickup` and select the named skill. The [complete first-use example](references/first-use.md) includes sample inputs, a WAIT case, and a restricted-access receipt.
 
 ## Why choose Pickup?

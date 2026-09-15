@@ -31,6 +31,16 @@ The registry owns these mutable views:
 
 Package files, quarantine events, and versioned receipt files are immutable. Do not hand-edit any registry file.
 
+## Initialize configured storage
+
+Before the first registry command in every normal Trash or Treasure invocation, run:
+
+```bash
+"$treasurepickup_skill/scripts/pickup" init
+```
+
+The command resolves the installed `PICKUP_HOME`, creates the required base folders and empty private registry on first use, then validates existing registry state on later calls. Success reports schema version plus package and active-claim counts. Repeated calls preserve every existing registry object and create no package, claim, receipt, quarantine, compatibility output, or phase authorization. Invalid or corrupt existing state fails closed.
+
 ## Inspect and select
 
 List packages without claiming them:

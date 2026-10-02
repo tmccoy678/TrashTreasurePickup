@@ -1,49 +1,33 @@
-# macOS setup for the Pickup pair
+# Setup
 
-## Install both skills
+## Install the pair
 
-Download `pickup-install.command` from the Pickup repository's `dist` folder using your authorized GitHub access, or use the copy supplied by the maintainer. Run:
+Download [pickup-install.command](https://github.com/tmccoy678/TrashTreasurePickup/raw/refs/heads/main/dist/pickup-install.command), then run:
 
 ```bash
 bash "$HOME/Downloads/pickup-install.command"
 ```
 
-Accept the displayed locations, or choose your own. The installer supplies both skills, Python, Git, and Gitleaks. Internet access is needed for its tool downloads. No separate prerequisite installation or folder copying is needed. Existing skills require a replacement decision and are backed up when replacement is accepted. Existing audit data is preserved.
+The command contains both skills. It makes no additional network download and does not install a separate runtime.
 
-The default skill destination is `~/.agents/skills`; the default audit location is `~/Desktop/pickup_audit`. An existing user-created audit folder works identically. Setup does not invoke the skills, create pickup history, or grant the assistant file access.
-
-The project remains private. The downloaded command file is the current installation route; a public download command depends on the owner's later publication. The installer targets Apple Silicon and Intel with a macOS 12 minimum. Actual verification is recorded in the project's acceptance documents. Apple Silicon with macOS 26.6.2 was exercised; Intel, older macOS, native GUI discovery, and other hosts remain unverified. Real-scanner execution remains deferred. Model-generated exact text and formatting require human inspection.
-
-## Resolve commands when access permits
-
-These steps are for the operator following the invoked skill, not extra setup for the user. Use the installed Treasure Pickup directory supplied by the host or installer. Both skills use its shared helper.
+The default destination is `~/.agents/skills`. Use another compatible location with:
 
 ```bash
-# Use the selected installation directory if it differs from the default.
-treasurepickup_skill="$HOME/.agents/skills/treasurepickup"
-treasurepickup_skill=$(cd "$treasurepickup_skill" && pwd -P)
-source "$treasurepickup_skill/scripts/pickup-env.sh"
-pickup_workspace=$("$pickup_python" -c 'import os; from pathlib import Path; print(Path(os.environ["PICKUP_HOME"]).expanduser().resolve())')
-pickup_registry="$treasurepickup_skill/scripts/pickup_registry.py"
-pickup_registry_root="$pickup_workspace/treasurepickup/pickups"
+bash "$HOME/Downloads/pickup-install.command" --skills-dir "$HOME/path/to/skills"
 ```
 
-The generated configuration supplies the tool paths and saved audit location to this command or shell only. It does not change shell startup files. An explicit Pickup location takes precedence over `PICKUP_HOME`, which takes precedence over the saved location. Helper command-line paths retain their existing precedence. Quote all paths. Use `"$pickup_python"` for Python and checkpoint JSON validation, `"$pickup_git"` for repository checks, and `"$pickup_gitleaks"` for scanning. Scanner discovery through the configured command PATH still works, and `--gitleaks-path` overrides it.
+The installer asks before replacing an existing pair and retains accepted replacements in a `.pickup-backup-*` folder beside the active skills. It does not create a handoff or invoke either skill.
 
-For direct helper use, the installed `scripts/pickup` command also accepts `registry`, `receipt`, `python`, `git`, `gitleaks`, or `config`. It loads the same configuration and forwards arguments. Use the original helper gates and verified values, as described in the [registry protocol](pickup-registry.md).
+After installation, refresh the agent host or start a fresh task so it discovers the new skill files.
 
-## Storage and access
+## Handoff location
 
-With sufficient authorized access, automatically create the required folders during the normal skill invocation, then save and verify the handoff, archive, checkpoint, registry package, and receipt as usual:
+Pickup uses the current project by default:
 
-```bash
-mkdir -p "$pickup_workspace/trashpickup/context-archive" "$pickup_workspace/treasurepickup"
+```text
+<workspace>/.pickup/current-context.md
+<workspace>/.pickup/context-checkpoint.json
+<workspace>/.pickup/archive/
 ```
 
-Existing grants activate this workflow without an additional opt-in. Limited or no access retains conversation delivery using supplied evidence and permitted reads; unavailable installation files or helpers are not required for that workflow. Saving is optional only in that fallback. Denied access does not require a broader-access request. An actual failed check or interrupted normal transaction remains a failure, not a successful fallback result.
-
-Registry `claim --workspace` must match the registry's existing workspace binding: two parent directories above the registry. The default compatibility output is `treasurepickup/context-resume.json` beneath that location. Completion saves a Markdown receipt in its sibling `receipts` folder while retaining internal JSON records. Explicit output paths retain the helper's binding checks. `--skill-file` identifies the deployed Treasure `SKILL.md` beside the running helper; use its resolved absolute path.
-
-Preserve the current project's source paths in the handoff. Temporary processing is limited to relevant artifacts and receipts, using permitted temporary storage and cleaning up owned temporary files. A missing or failing scanner in an otherwise authorized normal run blocks required writes.
-
-The checkpoint shape remains in Trash's skill; registry validation remains in the existing helpers. Completing installation or a pickup never authorizes the next work phase.
+No computer-specific username or fixed home-directory path is required.

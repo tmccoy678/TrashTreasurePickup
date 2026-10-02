@@ -1,9 +1,7 @@
-# Support and contributions
+# Support
 
-For installation or behavior questions, open an issue in the [Pickup tracker](https://github.com/tmccoy678/draft2staged-pickup/issues), which tracks shared pair work. Say which skill is affected. Existing repository access is required while the project remains private.
+For installation or behavior questions, open an issue in the [Pickup tracker](https://github.com/tmccoy678/TrashTreasurePickup/issues) and say which skill is affected.
 
-Include the source commit or release, installer checksum if relevant, operating system/architecture and agent host, a small non-sensitive reproduction, expected behavior, and the sanitized error/result. A minimal fictional fixture is preferable to a real handoff or audit log.
+Include the source commit, operating system, agent host, expected behavior, a small non-sensitive reproduction, and the sanitized error or result. Use a fictional handoff when possible. Do not publish a real handoff if it contains private project information.
 
-For setup, updates, rollback, and removal, use the [lifecycle guide](lifecycle.md). For proposing changes and validation, see [Contributing](../CONTRIBUTING.md). Questions, corrections, and simpler structures are welcome; explain the user outcome and retain evidence for behavioral changes.
-
-Vulnerability details belong in a private channel. Follow the [security policy](../SECURITY.md); a public support issue must contain only a request for private contact if no route has been established.
+For vulnerability details, follow the [security policy](../SECURITY.md) and request a private contact route without posting reproduction details.

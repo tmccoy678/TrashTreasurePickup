@@ -1,38 +1,119 @@
 #!/bin/bash
-# Bootstrap with macOS tools; Python and Git come from the pinned environment.
 set -euo pipefail
 umask 077
+
 bundle=$(cd "$1" && pwd)
 shift
-export PATH=/usr/bin:/bin:/usr/sbin:/sbin
-[[ $(uname -s) == Darwin ]] || { echo 'Pickup requires macOS.' >&2; exit 1; }
-[[ $(sw_vers -productVersion | cut -d. -f1) -ge 12 ]] || { echo 'Pickup requires macOS 12 or newer.' >&2; exit 1; }
-machine=$(uname -m)
-case "$machine" in arm64|x86_64) ;; *) echo 'Unsupported Mac architecture.' >&2; exit 1;; esac
-mkdir -p "$HOME/Library/Application Support/Pickup"
-runtime=$(mktemp -d "$HOME/Library/Application Support/Pickup/runtime.XXXXXXXX")
-cleanup() { if [[ ! -e "$runtime/installed" ]]; then rm -rf "$runtime"; fi; }
-trap cleanup EXIT
-trap 'exit 1' HUP INT TERM
-mkdir "$runtime/tools"
-while IFS=$'\t' read -r arch name url expected; do
-    [[ $arch == "$machine" ]] || continue
-    case "$name" in pixi|gitleaks) ;; *) echo 'Invalid runtime asset.' >&2; exit 1;; esac
-    curl -qfsSL --retry 2 --connect-timeout 20 --proto '=https,file' --proto-redir '=https' "$url" -o "$runtime/$name.download"
-    actual=$(shasum -a 256 "$runtime/$name.download" | cut -d' ' -f1)
-    [[ $actual == "$expected" ]] || { echo "Download checksum mismatch: $name" >&2; exit 1; }
-    if [[ $name == pixi ]]; then
-        mv "$runtime/$name.download" "$runtime/tools/pixi"
-        chmod 700 "$runtime/tools/pixi"
-    else
-        tar -xzf "$runtime/$name.download" -C "$runtime/tools"
-        rm "$runtime/$name.download"
+if [[ ! -d "$bundle/trashpickup" && -d "$bundle/skills/trashpickup" ]]; then
+    bundle="$bundle/skills"
+fi
+
+skills_dir="$HOME/.agents/skills"
+assume_yes=0
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --yes)
+            assume_yes=1
+            shift
+            ;;
+        --skills-dir)
+            [[ $# -ge 2 ]] || { echo 'Missing value for --skills-dir.' >&2; exit 2; }
+            skills_dir=$2
+            shift 2
+            ;;
+        --help|-h)
+            echo 'Usage: pickup-install.command [--yes] [--skills-dir PATH]'
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            exit 2
+            ;;
+    esac
+done
+
+skills_dir=${skills_dir/#\~/$HOME}
+if [[ $skills_dir != /* ]]; then
+    skills_dir="$PWD/$skills_dir"
+fi
+
+for name in trashpickup treasurepickup; do
+    for relative in SKILL.md README.md LICENSE SECURITY.md agents/openai.yaml; do
+        path="$bundle/$name/$relative"
+        [[ -f "$path" && ! -L "$path" ]] || {
+            echo "Installer is missing a regular file: $name/$relative" >&2
+            exit 1
+        }
+    done
+done
+
+echo "Skills directory: $skills_dir"
+if [[ $assume_yes -eq 0 ]]; then
+    read -r -p 'Install Trash Pickup and Treasure Pickup here? [Y/n] ' answer
+    case "$answer" in ''|y|Y|yes|YES) ;; *) echo 'Installation cancelled.'; exit 1;; esac
+fi
+
+existing=()
+for name in trashpickup treasurepickup; do
+    [[ -e "$skills_dir/$name" || -L "$skills_dir/$name" ]] && existing+=("$name")
+done
+if [[ ${#existing[@]} -gt 0 ]]; then
+    if [[ $assume_yes -eq 1 ]]; then
+        echo 'Existing Pickup skills were preserved. Run without --yes to review replacement.' >&2
+        exit 1
     fi
-done < "$bundle/installer/assets.tsv"
-[[ -x "$runtime/tools/pixi" && -x "$runtime/tools/gitleaks" ]] || { echo 'Required runtime assets are missing.' >&2; exit 1; }
-cp "$bundle/installer/pixi.toml" "$bundle/installer/pixi.lock" "$runtime/"
-cp "$bundle/installer/PIXI-LICENSE" "$bundle/installer/GITLEAKS-LICENSE" "$bundle/installer/THIRD_PARTY.md" "$runtime/"
-echo 'Installing the tools used by Pickup…'
-export PIXI_CACHE_DIR="$runtime/cache"
-"$runtime/tools/pixi" install --no-config --locked --manifest-path "$runtime/pixi.toml"
-"$runtime/.pixi/envs/default/bin/python3" "$bundle/installer/setup.py" "$bundle" "$runtime" "$@"
+    read -r -p 'Replace the existing Pickup pair and keep a backup? [y/N] ' answer
+    case "$answer" in y|Y|yes|YES) ;; *) echo 'Existing Pickup skills were preserved.'; exit 1;; esac
+fi
+
+mkdir -p "$skills_dir"
+stage=$(mktemp -d "$skills_dir/.pickup-install.XXXXXXXX")
+backup=''
+installed=()
+cleanup() {
+    status=$?
+    if [[ $status -ne 0 ]]; then
+        for path in "${installed[@]}"; do
+            [[ -e "$path" || -L "$path" ]] && rm -rf "$path"
+        done
+        if [[ -n "$backup" && -d "$backup" ]]; then
+            for name in trashpickup treasurepickup; do
+                [[ -e "$backup/$name" || -L "$backup/$name" ]] && mv "$backup/$name" "$skills_dir/$name"
+            done
+        fi
+    fi
+    [[ -d "$stage" ]] && rm -rf "$stage"
+    exit "$status"
+}
+trap cleanup EXIT HUP INT TERM
+
+for name in trashpickup treasurepickup; do
+    mkdir -p "$stage/$name/agents"
+    cp "$bundle/$name/SKILL.md" "$stage/$name/SKILL.md"
+    cp "$bundle/$name/README.md" "$stage/$name/README.md"
+    cp "$bundle/$name/LICENSE" "$stage/$name/LICENSE"
+    cp "$bundle/$name/SECURITY.md" "$stage/$name/SECURITY.md"
+    cp "$bundle/$name/agents/openai.yaml" "$stage/$name/agents/openai.yaml"
+done
+
+if [[ ${#existing[@]} -gt 0 ]]; then
+    backup=$(mktemp -d "$skills_dir/.pickup-backup.XXXXXXXX")
+    for name in "${existing[@]}"; do
+        mv "$skills_dir/$name" "$backup/$name"
+    done
+fi
+
+for name in trashpickup treasurepickup; do
+    [[ ! -e "$skills_dir/$name" && ! -L "$skills_dir/$name" ]] || {
+        echo "Installation destination changed: $skills_dir/$name" >&2
+        exit 1
+    }
+    mv "$stage/$name" "$skills_dir/$name"
+    installed+=("$skills_dir/$name")
+done
+
+trap - EXIT HUP INT TERM
+rmdir "$stage"
+echo "Pickup installed: $skills_dir"
+[[ -n "$backup" ]] && echo "Previous skills retained: $backup"
+echo 'Invoke $trashpickup to close a completed phase and $treasurepickup in the fresh task.'

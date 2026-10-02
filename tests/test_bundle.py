@@ -1,10 +1,9 @@
-"""Check distribution integrity through the bundle command-line interface."""
+"""Verify the downloadable installer contains only the simple public pair."""
 
 import base64
-import gzip
-import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -15,7 +14,6 @@ import unittest
 
 
 REPO = Path(__file__).resolve().parents[1]
-TRASH = REPO / "skills" / "trashpickup"
 
 
 class BundleTests(unittest.TestCase):
@@ -23,128 +21,124 @@ class BundleTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(prefix="pickup bundle ")
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
-        self.trash = self.root / "trash"
-        self.treasure = self.root / "treasure"
-        for source, target in ((TRASH, self.trash), (REPO / "skills/treasurepickup", self.treasure)):
-            shutil.copytree(source, target, ignore=shutil.ignore_patterns(
-                ".git", ".scratch", "dist", "__pycache__", ".pixi"))
-        shutil.copytree(REPO / "installer", self.treasure / "installer")
+        self.source = self.root / "source"
+        shutil.copytree(
+            REPO,
+            self.source,
+            ignore=shutil.ignore_patterns(".git", ".scratch", "dist", "__pycache__"),
+        )
         self.output = self.root / "pickup-install.command"
 
     def bundle(self, *args):
-        return subprocess.run([
-            sys.executable, str(REPO / "installer" / "bundle.py"),
-            "--trash", str(self.trash), "--treasure", str(self.treasure),
-            "--installer", str(self.treasure / "installer"),
-            "--output", str(self.output), *args,
-        ], capture_output=True, text=True)
+        return subprocess.run(
+            [
+                sys.executable,
+                str(self.source / "installer/bundle.py"),
+                "--source-root",
+                str(self.source),
+                "--output",
+                str(self.output),
+                *args,
+            ],
+            text=True,
+            capture_output=True,
+        )
 
-    def test_missing_security_policy_prevents_distribution(self):
-        (self.trash / "SECURITY.md").unlink()
+    def payload(self):
+        text = self.output.read_text()
+        encoded = text.split("<<'PICKUP_PAYLOAD'\n", 1)[1].split("\nPICKUP_PAYLOAD\n", 1)[0]
+        with tarfile.open(fileobj=io.BytesIO(base64.b64decode(encoded)), mode="r:gz") as archive:
+            return {member.name: archive.extractfile(member).read() for member in archive.getmembers()}
+
+    def commit_source(self):
+        subprocess.run(["git", "init", "-q", str(self.source)], check=True)
+        subprocess.run(["git", "-C", str(self.source), "add", "."], check=True)
+        subprocess.run(
+            [
+                "git", "-C", str(self.source), "-c", "user.name=Fixture",
+                "-c", "user.email=fixture@example.invalid", "commit", "-qm", "Fixture",
+            ],
+            check=True,
+        )
+        return subprocess.check_output(
+            ["git", "-C", str(self.source), "rev-parse", "HEAD"], text=True
+        ).strip()
+
+    def test_bundle_contains_only_two_instruction_skills_and_installer(self):
         result = self.bundle()
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("SECURITY.md", result.stderr)
-        self.assertFalse(self.output.exists())
+        self.assertEqual(result.returncode, 0, result.stderr)
+        files = self.payload()
+        expected = {"source-manifest.json", "installer/install.sh"}
+        for name in ("trashpickup", "treasurepickup"):
+            expected.update(
+                {
+                    f"{name}/SKILL.md",
+                    f"{name}/README.md",
+                    f"{name}/LICENSE",
+                    f"{name}/SECURITY.md",
+                    f"{name}/agents/openai.yaml",
+                }
+            )
+        self.assertEqual(set(files), expected)
+        self.assertFalse(any("scripts/" in name or "references/" in name for name in files))
+        manifest = json.loads(files["source-manifest.json"])
+        self.assertEqual(manifest["format"], "pickup-single-repository-v1")
+        self.assertEqual(self.bundle("--verify").returncode, 0)
 
-    def test_verify_rejects_changed_distributed_source(self):
-        built = self.bundle()
-        self.assertEqual(built.returncode, 0, built.stderr)
-        verified = self.bundle("--verify")
-        self.assertEqual(verified.returncode, 0, verified.stderr)
-        (self.trash / "README.md").write_text("Changed after packaging")
-        result = self.bundle("--verify")
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("trashpickup/README.md", result.stderr)
-
-    def test_declared_source_pair_must_match_distributed_bytes(self):
-        commits = []
-        for root in (self.trash, self.treasure):
-            subprocess.run(["git", "init", "-q", str(root)], check=True)
-            subprocess.run(["git", "-C", str(root), "add", "."], check=True)
-            subprocess.run(["git", "-C", str(root), "-c", "user.name=Fixture",
-                            "-c", "user.email=fixture@example.invalid", "commit", "-qm", "Fixture"], check=True)
-            commits.append(subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip())
-        pins = ["--trash-commit", commits[0], "--treasure-commit", commits[1]]
-        built = self.bundle(*pins)
-        self.assertEqual(built.returncode, 0, built.stderr)
-        self.assertEqual(self.bundle("--verify", *pins).returncode, 0)
-        (self.trash / "README.md").write_text("Uncommitted distributed change")
-        result = self.bundle(*pins)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("declared commit", result.stderr)
-
-    def test_missing_third_party_notice_prevents_distribution(self):
-        (self.treasure / "installer" / "GITLEAKS-LICENSE").unlink()
-        self.assertNotEqual(self.bundle().returncode, 0)
-        self.assertFalse(self.output.exists())
-
-    def test_verify_rejects_mutable_recorded_source_references(self):
-        for root in (self.trash, self.treasure):
-            subprocess.run(["git", "init", "-q", str(root)], check=True)
-            subprocess.run(["git", "-C", str(root), "add", "."], check=True)
-            subprocess.run(["git", "-C", str(root), "-c", "user.name=Fixture",
-                            "-c", "user.email=fixture@example.invalid", "commit", "-qm", "Fixture"], check=True)
+    def test_bundled_command_installs_the_pair(self):
         self.assertEqual(self.bundle().returncode, 0)
-        script = self.output.read_text()
-        encoded = script.split("<<'PICKUP_PAYLOAD'\n", 1)[1].split("\nPICKUP_PAYLOAD\n", 1)[0]
-        payload = base64.b64decode(encoded)
-        archive_bytes = io.BytesIO()
-        with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as original, tarfile.open(fileobj=archive_bytes, mode="w") as changed:
-            for member in original.getmembers():
-                data = original.extractfile(member).read()
-                if member.name == "source-manifest.json":
-                    manifest = json.loads(data)
-                    for source in manifest["sources"].values():
-                        source["commit"] = "HEAD"
-                    data = json.dumps(manifest, indent=2).encode() + b"\n"
-                    member.size = len(data)
-                changed.addfile(member, io.BytesIO(data))
-        compressed = io.BytesIO()
-        with gzip.GzipFile(fileobj=compressed, mode="wb", mtime=0, filename="") as stream:
-            stream.write(archive_bytes.getvalue())
-        altered = compressed.getvalue()
-        script = script.replace(encoded, base64.encodebytes(altered).decode().rstrip("\n"))
-        script = script.replace(hashlib.sha256(payload).hexdigest(), hashlib.sha256(altered).hexdigest())
-        self.output.write_text(script)
-        result = self.bundle("--verify")
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("immutable", result.stderr)
+        home = self.root / "home"
+        home.mkdir()
+        result = subprocess.run(
+            ["/bin/bash", str(self.output), "--yes"],
+            env={**os.environ, "HOME": str(home)},
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        for name in ("trashpickup", "treasurepickup"):
+            installed = home / ".agents/skills" / name
+            self.assertTrue((installed / "SKILL.md").is_file())
+            self.assertFalse((installed / "scripts").exists())
 
-    def test_missing_host_metadata_and_support_reference_are_rejected(self):
-        for relative in ("agents/openai.yaml", "references/pickup-registry.md"):
-            path = self.trash / relative
-            data = path.read_bytes()
-            path.unlink()
-            result = self.bundle()
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn(relative, result.stderr)
-            path.write_bytes(data)
+    def test_missing_or_symlinked_input_is_rejected(self):
+        path = self.source / "skills/trashpickup/SKILL.md"
+        original = path.read_bytes()
+        path.unlink()
+        missing = self.bundle()
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertFalse(self.output.exists())
+        outside = self.root / "outside.md"
+        outside.write_bytes(original)
+        path.symlink_to(outside)
+        symlink = self.bundle()
+        self.assertNotEqual(symlink.returncode, 0)
+        self.assertIn("regular", symlink.stderr)
 
-    def test_changed_script_is_rejected_without_execution(self):
-        self.assertEqual(self.bundle().returncode, 0)
-        sentinel = self.root / "executed"
-        with self.output.open("a") as stream:
-            stream.write(f'\ntouch "{sentinel}"\n')
-        result = self.bundle("--verify")
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("script", result.stderr)
-        self.assertFalse(sentinel.exists())
+    def test_clean_commit_binds_the_distributed_bytes(self):
+        commit = self.commit_source()
+        built = self.bundle("--source-commit", commit)
+        self.assertEqual(built.returncode, 0, built.stderr)
+        self.assertEqual(self.bundle("--verify", "--source-commit", commit).returncode, 0)
+        skill = self.source / "skills/trashpickup/SKILL.md"
+        skill.write_text(skill.read_text() + "\nchanged\n")
+        changed = self.bundle("--source-commit", commit)
+        self.assertNotEqual(changed.returncode, 0)
+        self.assertIn("declared commit", changed.stderr)
 
-    def test_repeated_build_has_identical_bytes(self):
+    def test_repeated_build_is_identical(self):
         self.assertEqual(self.bundle().returncode, 0)
         first = self.output.read_bytes()
         self.assertEqual(self.bundle().returncode, 0)
         self.assertEqual(self.output.read_bytes(), first)
 
-    def test_bundle_manifest_hashes_cover_exact_payload(self):
+    def test_changed_wrapper_is_rejected_without_execution(self):
         self.assertEqual(self.bundle().returncode, 0)
-        encoded = self.output.read_text().split("<<'PICKUP_PAYLOAD'\n", 1)[1].split("\nPICKUP_PAYLOAD\n", 1)[0]
-        with tarfile.open(fileobj=io.BytesIO(base64.b64decode(encoded)), mode="r:gz") as archive:
-            files = {item.name: archive.extractfile(item).read() for item in archive.getmembers()}
-        manifest = json.loads(files.pop("source-manifest.json"))
-        self.assertEqual(set(files), set(manifest["sha256"]))
-        for path, data in files.items():
-            self.assertEqual(hashlib.sha256(data).hexdigest(), manifest["sha256"][path])
+        with self.output.open("a") as stream:
+            stream.write("\nexit 0\n")
+        verified = self.bundle("--verify")
+        self.assertNotEqual(verified.returncode, 0)
+        self.assertIn("script", verified.stderr)
 
 
 if __name__ == "__main__":

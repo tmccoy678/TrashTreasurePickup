@@ -1,6 +1,6 @@
 # Maintaining the installer
 
-One checkout supplies both skills and their tools. User instructions are in the project README and macOS setup reference.
+One checkout supplies both instruction-only skills. User instructions are in the project README and setup reference.
 
 ## Build and verify
 
@@ -8,30 +8,21 @@ Use a clean checkout with full history and commit every distributed input first.
 
 ```bash
 pickup_source_commit=$(git rev-parse HEAD)
-python3 scripts/sync_skill_docs.py --check
 python3 installer/bundle.py --source-commit "$pickup_source_commit" --output dist/pickup-install.command
 python3 installer/bundle.py --source-commit "$pickup_source_commit" --output dist/pickup-install.command --verify
 shasum -a 256 dist/pickup-install.command
 ```
 
-The default source is this repository. `--source-root` selects a disposable or alternate checkout. `--source-commit` is a full immutable commit. Every distributed input must match that commit. The generated installer can be committed afterward; its source commit remains valid when the distributed inputs agree.
-
-For checksum comparisons, build twice with the same source revision, runtime, and provenance inputs, writing both outputs outside the checkout. Working-tree observations are part of the manifest, so unrelated uncommitted changes can change the artifact checksum. Verification uses the candidate's recorded observations.
+The default source is this repository. `--source-root` selects another checkout. `--source-commit` is the full commit containing every distributed input. The generated installer can be committed afterward.
 
 ## What validation proves
 
-The manifest format `pickup-single-repository-v1` records one source revision, explicit source paths for every distributed file, and SHA-256 hashes. Both portable packages receive shared policies and references from one maintained source. Required skill files, metadata, runtime helpers, policies, references, and third-party notices must be regular files; stale package copies fail clearly. All files in the shared reference collection are included, including non-Markdown assets.
+The manifest records one source revision, explicit source paths, and SHA-256 hashes. The payload contains the two skill files, their small metadata files, shared license and security files, and the Bash installer. Every input must be a regular file.
 
-`--verify` reads the installer as data. It checks the exact file set, distributed bytes, source mapping, manifest hashes, recorded Git source bytes, and generated wrapper. It does not run the installer or extract files to disk. Unversioned fixture builds carry null provenance and are not release evidence.
-
-The legacy `--trash`, `--treasure`, `--installer`, and paired commit options remain an explicit separate mode for historical fixtures. For historical versioned verification, use the matching paired source revisions and historical builder. Legacy artifacts keep their original manifest and checksum; the consolidated verifier does not reinterpret them as the new format.
+`--verify` reads the installer as data. It checks the exact file set, bytes, source mapping, hashes, Git source bytes, and generated wrapper without executing the candidate.
 
 ## Tests and evidence
 
-Run focused bundle/installer tests while editing, then `python3 -m unittest discover -s tests -v`. The suite preserves the registry and receipt command-line regressions and checks the one-checkout build, provenance rejection, update/rollback/removal, and interrupted operations in disposable storage.
+Run `python3 scripts/check_publication.py` and `python3 -m unittest discover -s tests -v`. The tests exercise the bundle and installer in disposable directories, including a real bundled install.
 
-The retained previous installer fixture is hash-checked before its payload is used for upgrade tests. Only external download locations are replaced in the disposable extracted copy; old installer and skill code remain unchanged. This is fixture-scanner evidence. [Historical acceptance](ACCEPTANCE.md) and [publication acceptance](../docs/acceptance/publication-1-5.md) remain records of their original sources and limitations.
-
-CI uses one checkout and no companion-repository secret. The dedicated companion credential is retired during the recorded repository cutover. Historical branches retain old workflow text and require modernization before manual reruns. Current real scanner execution remains deferred.
-
-The installer retains its existing user interface: `--yes` accepts defaults and refuses replacement; `--skills-dir` and `--audit-dir` set explicit locations. Interactive replacement retains a backup. [Third-party notices](THIRD_PARTY.md) cover the pinned tools separately from the project's MIT license.
+`--yes` accepts the default destination but preserves an existing pair. `--skills-dir` selects another destination. Interactive replacement retains a backup.

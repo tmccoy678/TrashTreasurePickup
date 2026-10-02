@@ -1,5 +1,4 @@
 __pycache__/
 *.py[cod]
 .DS_Store
-.pixi/
-skills/treasurepickup/scripts/pickup-env.sh
+.scratch/

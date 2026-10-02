@@ -1,4 +1,4 @@
-"""Build one portable installer from the reviewed pair; no private runtime state."""
+"""Build or verify the self-contained Pickup installer."""
 
 import argparse
 import base64
@@ -14,201 +14,144 @@ import tarfile
 from sources import collect
 
 
+FORMAT = "pickup-single-repository-v1"
+
+
+def git(root, *args, text=False):
+    return subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, text=text
+    )
+
+
+def current_commit(root):
+    result = git(root, "rev-parse", "--show-toplevel", text=True)
+    if result.returncode or Path(result.stdout.strip()).resolve() != root.resolve():
+        return None
+    return git(root, "rev-parse", "HEAD", text=True).stdout.strip()
+
+
+def source_manifest(root, files, mapping, commit=None):
+    return {
+        "format": FORMAT,
+        "source_commit": commit if commit is not None else current_commit(root),
+        "source_paths": mapping,
+        "sha256": {name: hashlib.sha256(data).hexdigest() for name, data in files.items()},
+    }
+
+
 def render(files, manifest):
-    """Render a deterministic command file, including its recorded provenance."""
-    members = {**files, "source-manifest.json": json.dumps(manifest, indent=2).encode() + b"\n"}
-    stream = io.BytesIO()
-    with tarfile.open(fileobj=stream, mode="w") as archive:
+    members = {
+        **files,
+        "source-manifest.json": json.dumps(manifest, indent=2, sort_keys=True).encode() + b"\n",
+    }
+    tar_stream = io.BytesIO()
+    with tarfile.open(fileobj=tar_stream, mode="w") as archive:
         for name, data in sorted(members.items()):
             info = tarfile.TarInfo(name)
             info.size = len(data)
-            info.mode = 0o755 if name.endswith(("/pickup", ".sh")) else 0o644
+            info.mode = 0o755 if name.endswith(".sh") else 0o644
             archive.addfile(info, io.BytesIO(data))
-    compressed = io.BytesIO()
-    with gzip.GzipFile(fileobj=compressed, mode="wb", mtime=0, filename="") as archive:
-        archive.write(stream.getvalue())
-    payload = compressed.getvalue()
+    zipped = io.BytesIO()
+    with gzip.GzipFile(fileobj=zipped, mode="wb", mtime=0, filename="") as archive:
+        archive.write(tar_stream.getvalue())
+    payload = zipped.getvalue()
     digest = hashlib.sha256(payload).hexdigest()
-    script = '''#!/bin/bash
+    encoded = base64.encodebytes(payload).decode()
+    return f'''#!/bin/bash
 set -euo pipefail
 umask 077
-work=$(mktemp -d "${TMPDIR:-/tmp}/pickup-install.XXXXXXXX")
+work=$(mktemp -d "${{TMPDIR:-/tmp}}/pickup-install.XXXXXXXX")
 trap 'rm -rf "$work"' EXIT
 trap 'exit 1' HUP INT TERM
-base64 -D > "$work/payload.tar.gz" <<'PICKUP_PAYLOAD'
-''' + base64.encodebytes(payload).decode() + "PICKUP_PAYLOAD\n"
-    return script + f'''[[ $(shasum -a 256 "$work/payload.tar.gz" | cut -d' ' -f1) == {digest} ]] || {{ echo 'Installer payload checksum mismatch.' >&2; exit 1; }}
+if base64 --decode </dev/null >/dev/null 2>&1; then
+    decoder=(base64 --decode)
+else
+    decoder=(base64 -D)
+fi
+"${{decoder[@]}}" > "$work/payload.tar.gz" <<'PICKUP_PAYLOAD'
+{encoded}PICKUP_PAYLOAD
+if command -v shasum >/dev/null 2>&1; then
+    actual=$(shasum -a 256 "$work/payload.tar.gz" | cut -d' ' -f1)
+else
+    actual=$(sha256sum "$work/payload.tar.gz" | cut -d' ' -f1)
+fi
+[[ $actual == {digest} ]] || {{ echo 'Installer payload checksum mismatch.' >&2; exit 1; }}
 tar -xzf "$work/payload.tar.gz" -C "$work"
-case "$0" in bash|/bin/bash) export PICKUP_STREAMED_INSTALL=1;; esac
 /bin/bash "$work/installer/install.sh" "$work" "$@"
 '''
 
 
-def verify(output, files):
-    """Read the payload as data; never execute or extract an installer to verify it."""
+def read_bundle(output):
     script = output.read_text()
     encoded = script.split("<<'PICKUP_PAYLOAD'\n", 1)[1].split("\nPICKUP_PAYLOAD\n", 1)[0]
     payload = base64.b64decode("".join(encoded.splitlines()), validate=True)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         members = archive.getmembers()
-        names = [item.name for item in members]
-        if len(names) != len(set(names)) or any(not item.isfile() for item in members):
-            raise ValueError("Bundle contains duplicate or non-regular members")
-        bundled = {item.name: archive.extractfile(item).read() for item in members}
+        if len({item.name for item in members}) != len(members):
+            raise ValueError("Bundle contains duplicate members")
+        if any(not item.isfile() for item in members):
+            raise ValueError("Bundle contains a non-regular member")
+        return script, {
+            item.name: archive.extractfile(item).read() for item in members
+        }
+
+
+def validate_commit(root, commit, files, mapping):
+    if commit is None:
+        if current_commit(root) is not None:
+            raise ValueError("Versioned sources require a source commit")
+        return
+    if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise ValueError("Source commit must be a full lowercase Git identity")
+    resolved = git(root, "rev-parse", "--verify", f"{commit}^{{commit}}", text=True)
+    if resolved.returncode or resolved.stdout.strip() != commit:
+        raise ValueError("Source commit does not resolve exactly")
+    for bundled_name, source_path in mapping.items():
+        recorded = git(root, "show", f"{commit}:{source_path}")
+        if recorded.returncode or recorded.stdout != files[bundled_name]:
+            raise ValueError(f"Distributed file differs from declared commit: {bundled_name}")
+
+
+def verify(output, root, files, mapping, expected_commit=None):
+    script, bundled = read_bundle(output)
     manifest = json.loads(bundled.pop("source-manifest.json"))
-    if set(bundled) != set(files):
-        raise ValueError("Bundle file set differs from required sources")
-    for name, data in files.items():
-        if bundled[name] != data:
-            raise ValueError(f"Distributed source differs: {name}")
-    expected = {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
-    if manifest["sha256"] != expected:
-        raise ValueError("Bundle source manifest hashes differ")
+    if manifest.get("format") != FORMAT:
+        raise ValueError("Unexpected bundle format")
+    if manifest.get("source_paths") != mapping or set(bundled) != set(files):
+        raise ValueError("Bundle file set or source mapping differs")
+    if any(bundled[name] != data for name, data in files.items()):
+        raise ValueError("Distributed bytes differ from the source tree")
+    hashes = {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
+    if manifest.get("sha256") != hashes:
+        raise ValueError("Bundle hashes differ")
+    commit = manifest.get("source_commit")
+    if expected_commit is not None and commit != expected_commit:
+        raise ValueError("Bundle source differs from requested commit")
+    validate_commit(root, commit, files, mapping)
     if script != render(files, manifest):
-        raise ValueError("Installer script or payload encoding differs from the builder")
+        raise ValueError("Generated installer script wrapper differs")
     return manifest
-
-
-def revision(root):
-    result = subprocess.run(["git", "-C", str(root), "rev-parse", "--show-toplevel"], capture_output=True, text=True)
-    if result.returncode or Path(result.stdout.strip()).resolve() != root.resolve():
-        return {"commit": None, "modified": None}
-    commit = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
-    modified = bool(subprocess.check_output(["git", "-C", str(root), "status", "--porcelain"], text=True).strip())
-    return {"commit": commit, "modified": modified}
-
-
-def check_sources(manifest, files, roots, pins):
-    """Match every shipped byte to its declared Git commit, including installer inputs."""
-    for name, root in roots.items():
-        recorded = manifest["sources"][name]["commit"]
-        if recorded is not None and (not isinstance(recorded, str) or not re.fullmatch("[0-9a-f]{40}", recorded)):
-            raise ValueError(f"Expected an immutable source commit: {name}")
-        pin = pins[name]
-        if pin is not None and recorded != pin:
-            raise ValueError(f"Source identity differs from declared commit: {name}")
-        if recorded is None:
-            if pin is not None or revision(root)["commit"] is not None:
-                raise ValueError(f"Missing declared commit: {name}")
-            continue  # Unversioned fixture builds are not release evidence.
-        resolved = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", f"{recorded}^{{commit}}"], capture_output=True, text=True)
-        if resolved.returncode or resolved.stdout.strip() != recorded:
-            raise ValueError(f"Declared source identity is not a commit: {name}")
-        for path, data in files.items():
-            if path.startswith(name + "/"):
-                relative = path.split("/", 1)[1]
-            elif name == "treasurepickup" and path.startswith("installer/"):
-                relative = path
-            else:
-                continue
-            source = subprocess.run(["git", "-C", str(root), "show", f"{recorded}:{relative}"], capture_output=True)
-            if source.returncode or source.stdout != data:
-                raise ValueError(f"Distributed file differs from declared commit: {path}")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source-root", type=Path, help="Consolidated repository (default: this checkout)")
-    parser.add_argument("--source-commit", help="Exact consolidated source commit")
-    parser.add_argument("--trash", type=Path, help="Legacy paired-source mode only")
-    parser.add_argument("--treasure", type=Path, help="Legacy Treasure source tree")
-    parser.add_argument("--installer", type=Path, help="Legacy installer source tree")
+    parser.add_argument("--source-root", type=Path, help="repository checkout")
+    parser.add_argument("--source-commit", help="full commit containing every bundled input")
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--verify", action="store_true", help="Verify an existing output without executing it")
-    parser.add_argument("--trash-commit", help="Exact 40-character reviewed Trash commit")
-    parser.add_argument("--treasure-commit", help="Exact 40-character reviewed Treasure commit")
+    parser.add_argument("--verify", action="store_true")
     args = parser.parse_args()
-    if args.trash is None:
-        if args.trash_commit or args.treasure_commit or args.treasure or args.installer:
-            parser.error("Legacy source options require --trash")
-        root = (args.source_root or Path(__file__).resolve().parents[1]).resolve()
-        build_consolidated(root, args.output, args.source_commit, args.verify)
-        return
-    if args.source_root or args.source_commit:
-        parser.error("Do not combine consolidated and legacy source options")
-    args.treasure = args.treasure or Path(__file__).resolve().parents[1] / "skills/treasurepickup"
-    args.installer = args.installer or Path(__file__).resolve().parent
-    pins = {"trashpickup": args.trash_commit, "treasurepickup": args.treasure_commit}
-    if any(pins.values()) and not all(pins.values()):
-        parser.error("Supply both source commits together")
-    for pin in pins.values():
-        if pin is not None and (len(pin) != 40 or any(c not in "0123456789abcdef" for c in pin)):
-            parser.error("Source commits must be full lowercase SHA-1 identities")
-    roots = {"trashpickup": args.trash, "treasurepickup": args.treasure}
-    files = {}
-    for name, root in (("trashpickup", args.trash), ("treasurepickup", args.treasure)):
-        selected = [root / path for path in (
-            "SKILL.md", "README.md", "LICENSE", "SECURITY.md", "CONTRIBUTING.md",
-            "agents/openai.yaml", "references/macos-setup.md",
-            "references/pickup-registry.md", "references/first-use.md",
-            "references/comparison.md", "references/author-note.md",
-            "references/lifecycle.md", "references/support.md", "references/security-launch.md",
-        )]
-        selected += sorted((root / "references").glob("*.md")) + sorted((root / "agents").glob("*.yaml"))
-        if name == "treasurepickup":
-            selected += [root / "scripts" / path for path in ("pickup", "pickup_registry.py", "treasurepickup_receipt.py")]
-        for path in selected:
-            if not path.is_file() or path.is_symlink():
-                raise ValueError(f"Missing regular required file: {name}/{path.relative_to(root)}")
-            files[f"{name}/{path.relative_to(root)}"] = path.read_bytes()
-    for name in ("install.sh", "setup.py", "assets.tsv", "pixi.toml", "pixi.lock", "PIXI-LICENSE", "GITLEAKS-LICENSE", "THIRD_PARTY.md"):
-        if not (args.installer / name).is_file() or (args.installer / name).is_symlink():
-            raise ValueError(f"Missing regular required file: installer/{name}")
-        files["installer/" + name] = (args.installer / name).read_bytes()
-    manifest = {"sources": {"trashpickup": revision(args.trash), "treasurepickup": revision(args.treasure)},
-                "sha256": {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}}
+    root = (args.source_root or Path(__file__).resolve().parents[1]).resolve()
+    files, mapping = collect(root)
     if args.verify:
-        recorded = verify(args.output, files)
-        check_sources(recorded, files, roots, pins)
+        verify(args.output, root, files, mapping, args.source_commit)
         print(f"Verified {args.output}: {len(files)} distributed files match")
         return
-    if all(pins.values()):
-        for name, pin in pins.items():
-            manifest["sources"][name]["commit"] = pin
-        check_sources(manifest, files, roots, pins)
-    script = render(files, manifest)
+    manifest = source_manifest(root, files, mapping, args.source_commit)
+    validate_commit(root, manifest["source_commit"], files, mapping)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(script)
+    args.output.write_text(render(files, manifest))
     args.output.chmod(0o755)
     print(f"Built {args.output} ({args.output.stat().st_size} bytes)")
-
-
-def build_consolidated(root, output, pin, verifying):
-    files, mapping = collect(root)
-    manifest = {"format": "pickup-single-repository-v1", "source": revision(root),
-                "source_paths": mapping,
-                "sha256": {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}}
-    if verifying:
-        manifest = verify(output, files)
-    elif pin is not None:
-        manifest["source"]["commit"] = pin
-    if manifest.get("format") != "pickup-single-repository-v1":
-        raise ValueError("Expected pickup-single-repository-v1; use the historical paired checkout for legacy verification")
-    if manifest["source_paths"] != mapping:
-        raise ValueError("Distributed source mapping differs from the repository layout")
-    recorded = manifest["source"]["commit"]
-    if recorded is None:
-        if pin is not None or revision(root)["commit"] is not None:
-            raise ValueError("Missing declared source commit")
-    else:
-        if not isinstance(recorded, str) or not re.fullmatch("[0-9a-f]{40}", recorded):
-            raise ValueError("Expected an immutable source commit")
-        if pin is not None and recorded != pin:
-            raise ValueError("Source identity differs from declared commit")
-        resolved = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", f"{recorded}^{{commit}}"], capture_output=True, text=True)
-        if resolved.returncode or resolved.stdout.strip() != recorded:
-            raise ValueError("Declared source identity is not a commit")
-        for name, relative in mapping.items():
-            source = subprocess.run(["git", "-C", str(root), "show", f"{recorded}:{relative}"], capture_output=True)
-            if source.returncode or source.stdout != files[name]:
-                raise ValueError(f"Distributed file differs from declared commit: {name}")
-    if verifying:
-        print(f"Verified {output}: {len(files)} distributed files match")
-    else:
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(render(files, manifest))
-        output.chmod(0o755)
-        print(f"Built {output} ({output.stat().st_size} bytes)")
 
 
 if __name__ == "__main__":

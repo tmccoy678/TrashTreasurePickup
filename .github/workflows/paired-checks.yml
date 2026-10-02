@@ -21,7 +21,7 @@ jobs:
           python-version: '3.12'
       - name: Documentation and syntax
         run: python3 scripts/check_publication.py
-      - name: Regression suite with fixture downloads and scanner
+      - name: Installer and bundle tests
         run: python3 -m unittest discover -s tests -v
       - name: Verify installer against its declared source
         run: |

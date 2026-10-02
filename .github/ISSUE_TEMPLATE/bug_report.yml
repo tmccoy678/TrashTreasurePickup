@@ -8,7 +8,7 @@ body:
     id: identity
     attributes:
       label: Release or source commit
-      description: Include both source identities and installer digest when available.
+      description: Include the source commit and installer digest when available.
     validations:
       required: true
   - type: input

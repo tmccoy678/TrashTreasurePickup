@@ -1,13 +1,9 @@
 # Trash Pickup
 
-Close a finished phase and produce a handoff, checkpoint, and separate trash bag.
+Close a completed work phase into a concise Markdown handoff and small JSON checkpoint.
 
-Use `$trashpickup` explicitly after finishing a work phase. Unfinished critical work returns `WAIT`.
+Install the pair from the [Pickup project](https://github.com/tmccoy678/TrashTreasurePickup), then invoke `$trashpickup` at a natural stopping point. It uses the current project by default and stores its handoff under `.pickup/` when file access is available.
 
-Install both skills through the [Pickup project](https://github.com/tmccoy678/draft2staged-pickup). The installed names remain `trashpickup` and `treasurepickup`; both use Treasure’s shared tools.
-
-[First use](references/first-use.md) · [Setup](references/macos-setup.md) · [Update and recovery](references/lifecycle.md) · [Support](references/support.md)
-
-Checks depend on available access. Unavailable checks remain `UNKNOWN` or `NOT RUN`; actual failures keep their result. Model output requires inspection. Completion does not authorize subsequent work.
+Trash Pickup has no runtime dependency, registry, receipt service, or required scanner. Git history retains the former experimental implementation.
 
 [Operational instructions](SKILL.md) · [Security](SECURITY.md) · [MIT License](LICENSE)

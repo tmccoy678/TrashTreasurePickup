@@ -1,4 +1,4 @@
-"""Check repository and installed-package documentation without invoking Pickup."""
+"""Run the inexpensive checks required for the public Pickup repository."""
 
 import ast
 from pathlib import Path
@@ -12,7 +12,8 @@ sys.path.insert(0, str(ROOT / "installer"))
 from sources import SKILLS, collect
 
 
-def check_links(path, text):
+def check_links(path):
+    text = path.read_text()
     targets = re.findall(r"\[[^\]\n]+\]\(([^)\n]+)\)", text)
     targets += re.findall(r"^\[[^\]\n]+\]:\s*(\S+)", text, re.M)
     for target in targets:
@@ -25,24 +26,33 @@ def check_links(path, text):
 
 def check():
     files, _ = collect(ROOT)
-    documents = [ROOT / name for name in ("README.md", "SECURITY.md", "CONTRIBUTING.md", "AGENTS.md")]
-    for folder in ("references", "docs", "skills"):
-        documents.extend((ROOT / folder).rglob("*.md"))
-    for path in documents:
-        check_links(path, path.read_text())
+    for path in ROOT.rglob("*.md"):
+        if ".git" not in path.parts:
+            check_links(path)
     for name in SKILLS:
-        if "allow_implicit_invocation: false" not in files[name + "/agents/openai.yaml"].decode():
+        metadata = files[f"{name}/agents/openai.yaml"].decode()
+        if "allow_implicit_invocation: false" not in metadata:
             raise ValueError(f"Explicit-only policy missing: {name}")
-    for folder in ("installer", "scripts", "tests", "skills"):
+        for shared in ("LICENSE", "SECURITY.md"):
+            packaged = ROOT / "skills" / name / shared
+            if packaged.read_bytes() != (ROOT / shared).read_bytes():
+                raise ValueError(f"Stale package copy: {packaged.relative_to(ROOT)}")
+    for folder in ("installer", "scripts", "tests"):
         for path in (ROOT / folder).rglob("*.py"):
             ast.parse(path.read_text(), filename=str(path))
-    for relative in ("installer/install.sh", "skills/treasurepickup/scripts/pickup", "dist/pickup-install.command"):
+    for relative in ("installer/install.sh", "dist/pickup-install.command"):
         subprocess.run(["/bin/bash", "-n", str(ROOT / relative)], check=True)
-    print("Shared documents, local links, explicit invocation policy, licenses, and syntax: PASS")
+    forbidden = ("/Users/" + "taylor", "~/AI-" + "Workspace", "PRIVATE " + "VAULT")
+    for path in ROOT.rglob("*"):
+        if path.is_file() and ".git" not in path.parts and path.suffix in {".md", ".py", ".sh", ".yaml", ".yml"}:
+            text = path.read_text(errors="replace")
+            if any(value in text for value in forbidden):
+                raise ValueError(f"Private machine path in {path.relative_to(ROOT)}")
+    print("Links, metadata, source files, shell syntax, and portability: PASS")
 
 
 if __name__ == "__main__":
     try:
         check()
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
         raise SystemExit(str(error))

@@ -2,6 +2,6 @@
 
 Preserve the product contract and validation expectations in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-For issue/spec work, use the [GitHub tracker](docs/agents/issue-tracker.md). For terminology or architecture decisions, follow [domain documentation](docs/agents/domain.md).
+Use the GitHub issue tracker for reproducible problems. Keep changes within the small handoff-and-checkpoint model described in the README and skill files.
 
-Both skills are in the skills collection. Edit shared policies and references at the repository root, then run `python3 scripts/sync_skill_docs.py`. Package copies are generated regular files; keep them synchronized. Keep human-facing copy in project documentation and operational instructions in the skills.
+Both skills are in the `skills/` collection. Keep human-facing setup in project documentation and operational instructions in each `SKILL.md`. The default installer must remain instruction-only and must not acquire a managed runtime.

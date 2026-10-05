@@ -44,6 +44,10 @@ Pickup carries context; it does not grant permissions or prove that every statem
 
 Git history retains the former experimental multi-pickup registry and its acceptance records. The current tree stays focused on the small, single-handoff pair.
 
+## Independent review
+
+[Nova (Muse Spark, Meta) — code review, 2026-10-05](docs/reviews/2026-10-05-nova.md): source-code-only review of the installer builder. 11/11 tests passing; the commit-pinning and pre-extraction checksum chain verified by reading. No defects found; one minor note on implicit path anchoring in `sources.py`.
+
 ## Help and license
 
 [Update or remove Pickup](references/lifecycle.md) · [Support](references/support.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)

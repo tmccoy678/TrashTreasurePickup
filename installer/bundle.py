@@ -106,6 +106,9 @@ def validate_commit(root, commit, files, mapping):
     resolved = git(root, "rev-parse", "--verify", f"{commit}^{{commit}}", text=True)
     if resolved.returncode or resolved.stdout.strip() != commit:
         raise ValueError("Source commit does not resolve exactly")
+    reachable = git(root, "merge-base", "--is-ancestor", commit, "HEAD")
+    if reachable.returncode:
+        raise ValueError("Source commit is not reachable from checkout HEAD")
     for bundled_name, source_path in mapping.items():
         recorded = git(root, "show", f"{commit}:{source_path}")
         if recorded.returncode or recorded.stdout != files[bundled_name]:

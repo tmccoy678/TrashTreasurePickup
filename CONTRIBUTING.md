@@ -26,4 +26,12 @@ python3 installer/bundle.py --source-commit "$pickup_source_commit" --output dis
 python3 installer/bundle.py --source-commit "$pickup_source_commit" --output dist/pickup-install.command --verify
 ```
 
+The declared source commit must remain reachable from the public default branch.
+Do not squash-merge a change that pins the installer to a feature-branch commit:
+the squash would replace that identity and leave a fresh clone unable to verify
+the bundle. For a change to bundled skill files or `installer/install.sh`, first
+merge the reviewed sources, then use a small follow-up pull request that rebuilds
+the installer against the new `main` commit. Documentation-only changes do not
+require a new bundle when the bundled inputs are unchanged.
+
 The installer must remain self-contained, back up accepted replacements, avoid unrelated skill folders, and install the exact reviewed skill bytes.

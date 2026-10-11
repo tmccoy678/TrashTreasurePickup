@@ -126,6 +126,46 @@ class BundleTests(unittest.TestCase):
         self.assertNotEqual(changed.returncode, 0)
         self.assertIn("declared commit", changed.stderr)
 
+    def test_unreachable_source_commit_is_rejected(self):
+        base = self.commit_source()
+        note = self.source / "release-note.txt"
+        note.write_text("not part of the installer payload\n")
+        subprocess.run(["git", "-C", str(self.source), "add", note.name], check=True)
+        subprocess.run(
+            [
+                "git", "-C", str(self.source), "-c", "user.name=Fixture",
+                "-c", "user.email=fixture@example.invalid", "commit", "-qm",
+                "Unmerged release note",
+            ],
+            check=True,
+        )
+        unreachable = subprocess.check_output(
+            ["git", "-C", str(self.source), "rev-parse", "HEAD"], text=True
+        ).strip()
+        built = self.bundle("--source-commit", unreachable)
+        self.assertEqual(built.returncode, 0, built.stderr)
+        subprocess.run(
+            ["git", "-C", str(self.source), "checkout", "--detach", "-q", base],
+            check=True,
+        )
+        verified = self.bundle("--verify")
+        self.assertNotEqual(verified.returncode, 0)
+        self.assertIn("not reachable", verified.stderr)
+
+    def test_committed_public_installer_verifies(self):
+        verified = subprocess.run(
+            [
+                sys.executable,
+                str(REPO / "installer/bundle.py"),
+                "--output",
+                str(REPO / "dist/pickup-install.command"),
+                "--verify",
+            ],
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(verified.returncode, 0, verified.stderr)
+
     def test_repeated_build_is_identical(self):
         self.assertEqual(self.bundle().returncode, 0)
         first = self.output.read_bytes()

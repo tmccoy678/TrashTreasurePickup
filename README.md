@@ -1,5 +1,7 @@
 # Trash Pickup + Treasure Pickup
 
+[![Pickup checks](https://github.com/tmccoy678/TrashTreasurePickup/actions/workflows/paired-checks.yml/badge.svg)](https://github.com/tmccoy678/TrashTreasurePickup/actions/workflows/paired-checks.yml)
+
 Two small, manual Codex skills for carrying useful context into a fresh task.
 
 - **Trash Pickup** closes a completed phase into a readable Markdown handoff and a small JSON checkpoint.
@@ -16,6 +18,11 @@ bash "$HOME/Downloads/pickup-install.command"
 ```
 
 The installer contains both skills and works without another network download. It installs to `~/.agents/skills` by default, preserves existing copies when replacement is declined, and keeps a backup when replacement is accepted. No GitHub sign-in is required.
+
+The bundle carries a manifest of the exact reviewed source bytes and a source
+commit reachable from public history. Its wrapper verifies the embedded payload's
+SHA-256 before extraction; repository checks independently verify the manifest
+against the committed sources.
 
 To install from a cloned checkout instead:
 

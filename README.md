@@ -1,3 +1,19 @@
+**Trash Pickup and Treasure Pickup**
+
+**"Summarize this entire conversation so that I can continue this work in another chat. No mistakes."
+**
+The early versions of these skills were built for myself, these are the "softened" versions of context-movement skills that I used to joke, "could have launched a rocket" with their checks and acceptance gates. 
+
+I have tested the skills contained in this repository myself on my Mac computer with Codex agents only. 
+
+I do not claim that these skills will be able to be used on your Windows 11 home system or something. My apologies for that, and I would be grateful for the skills to be returned to me if someone adapts and tests them on a computer running Windows or Linux. 
+
+Thank you, 
+
+Taylor 
+
+The original implementations of these skills were created as a way for me to capture and transport accurate context from large context windows. Broadly, my goals were to eliminate drift, maintain audibility, and capture hallucinations honestly. Additionally, I wanted to stop needing to write: "summarize this conversation in detail, no mistakes" since it was not very reproducible and it placed no responsibility for accuracy on me nor the agent collecting the context and writing the summary. 
+
 # Trash Pickup + Treasure Pickup
 
 [![Pickup checks](https://github.com/tmccoy678/TrashTreasurePickup/actions/workflows/paired-checks.yml/badge.svg)](https://github.com/tmccoy678/TrashTreasurePickup/actions/workflows/paired-checks.yml)
